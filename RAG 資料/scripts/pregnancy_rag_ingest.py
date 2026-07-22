@@ -1,4 +1,4 @@
-"""Ingest text documents into a Supabase pgvector table for pregnancy RAG.
+"""Ingest text documents into a Supabase pgvector table using OpenAI embeddings.
 
 The script is intentionally self-contained:
 - extracts text from .txt files or PDF files
@@ -227,12 +227,15 @@ def build_chunks(source_path: Path, source_name: str, max_chars: int, overlap: i
     return chunks
 
 
-def embed_text(text: str, model_name: str) -> list[float] | None:
+def embed_text(text: str, model_name: str, require_openai: bool = False) -> list[float]:
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if api_key and OpenAI is not None:
         client = OpenAI(api_key=api_key)
         response = client.embeddings.create(model=model_name, input=text)
         return list(response.data[0].embedding)
+
+    if require_openai:
+        raise RuntimeError("缺少 OPENAI_API_KEY，無法使用 OpenAI 產生 embeddings。")
 
     return local_embed_text(text)
 
@@ -263,9 +266,9 @@ def local_embed_text(text: str, dimension: int = LOCAL_EMBEDDING_DIMENSION) -> l
     return vector
 
 
-def add_embeddings(chunks: list[dict[str, Any]], model_name: str) -> None:
+def add_embeddings(chunks: list[dict[str, Any]], model_name: str, require_openai: bool = False) -> None:
     for chunk in chunks:
-        chunk["embedding"] = embed_text(chunk["content"], model_name)
+        chunk["embedding"] = embed_text(chunk["content"], model_name, require_openai=require_openai)
 
 
 def write_jsonl(output_path: Path, chunks: list[dict[str, Any]]) -> None:
@@ -331,14 +334,15 @@ def load_env_file(env_path: Path) -> None:
 
 
 def ensure_table(cursor, table_name: str) -> None:
-    cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+    cursor.execute("CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;")
     cursor.execute(
         f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
-            id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            id BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL,
             content TEXT NOT NULL,
             metadata JSONB NOT NULL DEFAULT '{{}}'::jsonb,
-            embedding VECTOR(1536) NOT NULL
+            embedding extensions.vector(1536) NOT NULL,
+            CONSTRAINT {table_name}_pkey PRIMARY KEY (id)
         );
         """
     )
@@ -346,7 +350,7 @@ def ensure_table(cursor, table_name: str) -> None:
         f"""
         CREATE INDEX IF NOT EXISTS {table_name}_embedding_idx
             ON {table_name}
-            USING ivfflat (embedding vector_cosine_ops)
+            USING ivfflat (embedding extensions.vector_cosine_ops)
             WITH (lists = 100);
         """
     )
@@ -420,9 +424,14 @@ def main() -> int:
         return 1
 
     if not args.skip_embeddings:
-        if args.write_supabase and not os.getenv("OPENAI_API_KEY", "").strip():
-            print("警告：目前沒有 OPENAI_API_KEY，將使用本機 fallback embeddings。若 n8n 使用 OpenAI Embeddings，查詢可能回傳空結果。", file=sys.stderr)
-        add_embeddings(chunks, args.embedding_model)
+        require_openai = args.write_supabase
+        if require_openai and not os.getenv("OPENAI_API_KEY", "").strip():
+            print("缺少 OPENAI_API_KEY，無法將資料寫入 Supabase。", file=sys.stderr)
+            return 1
+        if require_openai and OpenAI is None:
+            print("缺少 openai 套件，請先安裝 requirements.txt。", file=sys.stderr)
+            return 1
+        add_embeddings(chunks, args.embedding_model, require_openai=require_openai)
 
     output_stem = source_path.stem if source_path.is_file() else source_path.name
     jsonl_path = output_dir / f"{output_stem}.jsonl"
