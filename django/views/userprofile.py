@@ -128,6 +128,7 @@ def userprofile(request):
     family_members = []
     pending_count = 0
     can_manage_helpers = False
+    is_case_owner = False
     if case:
         family_members = list(
             FamilyMember.objects

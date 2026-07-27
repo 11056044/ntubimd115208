@@ -75,28 +75,13 @@ def handle_allauth_login_success(request, user, **kwargs):
                     email=email,
                 )
                 user_profile.save(force_insert=True)
-            else:
-                update_fields = []
-                if user_profile.email != email and is_google:
-                    user_profile.email = email
-                    update_fields.append('email')
-                if user_profile.name != display_name:
-                    user_profile.name = display_name
-                    update_fields.append('name')
-                if is_line and user_profile.line_id != line_user_id:
-                    user_profile.line_id = line_user_id
-                    update_fields.append('line_id')
-                if picture and user_profile.avatar != picture:
-                    user_profile.avatar = picture
-                    update_fields.append('avatar')
-                if update_fields:
-                    user_profile.save(update_fields=update_fields)
+            # 已存在的 UserProfile：不再覆寫任何欄位（email/name/line_id/avatar），
+            # 僅在首次建立帳號時才會寫入這些從社群帳號取得的資訊。
 
-        # 🎯 寫入系統 Session
         request.session['user_id'] = str(user_profile.user_id)
-        request.session['user_email'] = email
-        request.session['user_name'] = display_name
-        request.session['user_avatar'] = picture or ''
+        request.session['user_email'] = user_profile.email
+        request.session['user_name'] = user_profile.name
+        request.session['user_avatar'] = user_profile.avatar or ''
         request.session.pop('active_case_id', None)
         request.session.pop('active_baby_id', None)
         request.session.modified = True
@@ -160,28 +145,13 @@ def google_auth_login(request):
                 email=email,
             )
             user_profile.save(force_insert=True)
-
-        update_fields = []
-        if user_profile.email != email:
-            user_profile.email = email
-            update_fields.append('email')
-        if user_profile.name != name:
-            user_profile.name = name
-            update_fields.append('name')
-        # keep line_id empty for Google-based accounts
-        if user_profile.line_id not in (None, ''):
-            user_profile.line_id = ''
-            update_fields.append('line_id')
-        if picture and user_profile.avatar != picture:
-            user_profile.avatar = picture
-            update_fields.append('avatar')
-        if update_fields:
-            user_profile.save(update_fields=update_fields)
+        # 已存在的 UserProfile：不再覆寫 email/name/line_id/avatar 等欄位，
+        # 僅在首次建立帳號時才會寫入這些從 Google 帳號取得的資訊。
 
     request.session['user_id'] = str(user_profile.user_id)
-    request.session['user_email'] = email
-    request.session['user_name'] = name
-    request.session['user_avatar'] = picture
+    request.session['user_email'] = user_profile.email
+    request.session['user_name'] = user_profile.name
+    request.session['user_avatar'] = user_profile.avatar or ''
     request.session.pop('active_case_id', None)
     request.session.pop('active_baby_id', None)
     request.session.modified = True
@@ -189,8 +159,8 @@ def google_auth_login(request):
     if is_json_request:
         return JsonResponse({
             'status': 'success',
-            'email': email,
-            'name': name,
+            'email': user_profile.email,
+            'name': user_profile.name,
             'user_id': str(user_profile.user_id),
             'redirect_url': reverse('index'),
         })
