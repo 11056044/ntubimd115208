@@ -40,15 +40,16 @@
             </div>
         </section>
         <!-- Helper List Section -->
+        {% if can_manage_helpers %}
         <section class="bg-surface-container-lowest rounded-lg shadow-[0_20px_40px_rgba(46,47,45,0.06)] overflow-hidden">
             <div class="p-8 pb-6 flex justify-between items-center border-b border-surface-container-high/50">
                 <div class="space-y-1">
                     <h3 class="font-bold text-on-surface text-lg">協助者名單</h3>
                     <p class="text-xs text-on-surface-variant font-medium">共同管理嬰幼兒紀錄的家人</p>
                 </div>
-                <button onclick="window.location.href='/edit_family_member/'" class="relative flex items-center gap-1 bg-surface-container-low hover:bg-surface-container-highest px-3 py-1.5 rounded-full transition-colors text-primary active:scale-95 cursor-pointer">
-                    <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
-                    <span class="text-xs font-bold">修改權限</span>
+                <button onclick="window.location.href='/edit_family_member/'" ...>
+                    <span class="material-symbols-outlined text-[16px]">{% if is_case_owner %}manage_accounts{% else %}visibility{% endif %}</span>
+                    <span class="text-xs font-bold">{% if is_case_owner %}修改權限{% else %}查看協助者{% endif %}</span>
                     {% if pending_count %}
                     <span class="absolute -top-1.5 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm">{{ pending_count }}</span>
                     {% endif %}
@@ -62,13 +63,15 @@
                             <span class="material-symbols-outlined text-[22px]">face</span>
                         </div>
                         <div class="flex flex-col">
-                            <span class="text-sm font-bold text-on-surface">{{ member.user.name }} ({{ member.role_label }})</span>
+                            <span class="text-sm font-bold text-on-surface">{{ member.user.name }}</span>
                         </div>
                     </div>
+                    {% if is_case_owner %}
                     <a href="{% url 'edit_family_member' %}?member_id={{ member.familymember_id }}"
                        class="text-on-surface-variant/50 hover:text-primary transition-colors p-2">
                         <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
                     </a>
+                    {% endif %}
                 </div>
                 {% empty %}
                 <div class="py-6 text-center">
@@ -79,6 +82,7 @@
                 {% endfor %}
             </div>
         </section>
+        {% endif %}
 
         <!-- 輸入加入碼小方框 -->
         <section class="bg-surface-container-lowest rounded-xl shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">

@@ -1,6 +1,4 @@
 import datetime
-
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
@@ -21,45 +19,15 @@ from core.models import (
 
 from views.pregnancycase import url_with_active_selection
 from views.session_utils import get_current_user_profile
-from views import baby_utils
 
 
 # ── 權限與角色輔助函式 ──────────────────────────────────────────────
-
-def decode_role(role_string):
-    """
-    解析家庭成員的角色字串。
-    格式範例: "caregiver|caregiver" -> (perm_pregnancy, perm_baby)
-    如果格式不標準，則提供安全降級的預設值。
-    """
-    if not role_string:
-        return ('none', 'none')
-    parts = role_string.split('|')
-    # 至少要有兩個欄位，否則第二個欄位(寶寶權限)直接沿用整個字串
-    return ('viewer', parts[1] if len(parts) > 1 else role_string)
-
-
 def _check_baby_permission(user, case, required='viewer'):
-    """
-    判斷 user 是否有存取此 case 之嬰幼兒紀錄的權限。
-    required: 'viewer'（可看）或 'caregiver'（可修改）
-    回傳 True/False。
-    """
     if case.user_id == user.user_id:
-        return True  # 案例擁有者永遠有完整權限
-
-    membership = FamilyMember.objects.filter(
-        pregnancycase=case, user=user
-    ).first()
-    if not membership:
-        return False
-
-    _, perm_baby = decode_role(membership.role)
-
-    if required == 'caregiver':
-        return perm_baby == 'caregiver'
-    # viewer 以上（viewer 或 caregiver）皆可看
-    return perm_baby in ('viewer', 'caregiver')
+        return True
+    membership = FamilyMember.objects.filter(pregnancycase=case, user=user).first()
+    required_level = 'edit' if required == 'caregiver' else 'view'
+    return baby_utils.has_permission(membership, 'baby_records', required_level)
 
 
 def _get_accessible_babies(user):
@@ -68,12 +36,7 @@ def _get_accessible_babies(user):
 
     # 共享：只取 perm_baby 為 viewer 或 caregiver 的 FamilyMember
     shared_memberships = FamilyMember.objects.filter(user=user).select_related('pregnancycase')
-    shared_case_ids = [
-        m.pregnancycase_id
-        for m in shared_memberships
-        if decode_role(m.role)[1] in ('viewer', 'caregiver')  # [1] = perm_baby
-    ]
-
+    shared_case_ids = [m.pregnancycase_id for m in shared_memberships if baby_utils.get_permission(m, 'baby_records') != 'off']
     return BabyInformation.objects.filter(
         Q(pregnancycase__in=cases_own) | Q(pregnancycase_id__in=shared_case_ids)
     ).distinct()
@@ -105,10 +68,7 @@ def add_baby_record(request):
 
     # 權限：只有 caregiver 以上才能新增
     if not _check_baby_permission(user, case, required='caregiver'):
-        return render(request, 'baby/add_babyrecord.html', {
-            'baby':  active_baby,
-            'error': '您沒有權限新增此嬰幼兒的成長紀錄（需要照顧者權限）',
-        })
+        return redirect('babyinformation')
 
     initial_date = request.GET.get('date', '')
     today_iso = datetime.date.today().isoformat()  # 供 template max 屬性使用
@@ -241,7 +201,7 @@ def edit_baby_record(request, babyrecord_id):
 
     # 需要 caregiver 權限才能編輯
     if not _check_baby_permission(user, case, required='caregiver'):
-        raise PermissionDenied('您沒有權限編輯此紀錄（需要照顧者權限）')
+        return redirect('babyinformation')
 
     record.milestones, record.note_text = baby_utils.split_note_and_milestones(record)
 
@@ -347,8 +307,7 @@ def delete_baby_record(request, babyrecord_id):
     case   = record.baby.pregnancycase
 
     if not _check_baby_permission(user, case, required='caregiver'):
-        raise PermissionDenied('您沒有權限刪除此紀錄（需要照顧者權限）')
-
+        return redirect('babyinformation')
     record.delete()
     return redirect(url_with_active_selection(request, reverse('babyinformation')))
 

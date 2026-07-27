@@ -7,7 +7,7 @@ class FamilyMember(models.Model):
     familymember_id = models.AutoField(primary_key=True)
     pregnancycase = models.ForeignKey(PregnancyCase, on_delete=models.CASCADE)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    role = models.CharField(max_length=5)
+    permissions = models.JSONField(default=dict)
     join_time = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -15,4 +15,4 @@ class FamilyMember(models.Model):
         managed = True 
 
     def __str__(self):
-        return self.role
+        return f"Family Member {self.familymember_id}"
