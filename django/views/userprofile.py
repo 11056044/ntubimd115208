@@ -18,6 +18,7 @@ from django.conf import settings
 import os
 from django.contrib import messages
 from django.db import IntegrityError
+from views import baby_utils
 
 
 # 圖片儲存目標目錄（相對於 BASE_DIR）
@@ -126,6 +127,7 @@ def userprofile(request):
     case = resolve_active_pregnancy_case(request, current_user)
     family_members = []
     pending_count = 0
+    can_manage_helpers = False
     if case:
         family_members = list(
             FamilyMember.objects
@@ -133,8 +135,13 @@ def userprofile(request):
             .select_related('user')
             .order_by('join_time')
         )
-        if case.user == current_user:
+        is_case_owner = bool(case and case.user_id == current_user.user_id)
+        if case.user_id == current_user.user_id:
+            can_manage_helpers = True
             pending_count = len(join_requests_manager.get_pending_requests(case.pregnancycase_id))
+        else:
+            membership = FamilyMember.objects.filter(pregnancycase=case, user=current_user).first()
+            can_manage_helpers = baby_utils.has_permission(membership, 'helper_list', 'view')
 
     return render(request, 'user/userprofile.html', {
         'current_user': current_user,
@@ -142,8 +149,9 @@ def userprofile(request):
         'selected_child_info': selected_child_info,
         'family_members': family_members,
         'pending_count': pending_count,
+        'can_manage_helpers': can_manage_helpers,
+        'is_case_owner': is_case_owner,
     })
-
 
 def join_family(request):
     current_user = get_current_user_profile(request)
@@ -172,9 +180,7 @@ def join_family(request):
                     user_id=current_user
                 ).first()
                 if membership:
-                    role_map = {'caregiver': '照顧者', 'viewer': '觀看者', 'mom': '養育者'}
-                    role_label = role_map.get(membership.role, membership.role)
-                    join_success = f'已確認！您以「{role_label}」身份加入此胎數'
+                    join_success = '您已經是此胎數的協助者了'
                 elif join_requests_manager.has_pending_request(case.pregnancycase_id, current_user.user_id):
                     join_success = '您已送出加入申請，請等待養育者審核同意。'
                 else:
@@ -186,6 +192,7 @@ def join_family(request):
     active_case = resolve_active_pregnancy_case(request, current_user)
     family_members = []
     pending_count = 0
+    can_manage_helpers = False
     if active_case:
         family_members = list(
             FamilyMember.objects
@@ -193,8 +200,12 @@ def join_family(request):
             .select_related('user')
             .order_by('join_time')
         )
-        if active_case.user == current_user:
+        if active_case.user_id == current_user.user_id:
+            can_manage_helpers = True
             pending_count = len(join_requests_manager.get_pending_requests(active_case.pregnancycase_id))
+        else:
+            active_membership = FamilyMember.objects.filter(pregnancycase=active_case, user=current_user).first()
+            can_manage_helpers = baby_utils.has_permission(active_membership, 'helper_list', 'view')
 
     return render(request, 'user/userprofile.html', {
         'current_user': current_user,
@@ -204,6 +215,7 @@ def join_family(request):
         'join_error': join_error,
         'join_success': join_success,
         'pending_count': pending_count,
+        'can_manage_helpers': can_manage_helpers,
     })
 
 

@@ -1,9 +1,10 @@
 import datetime
 import calendar
-from django.shortcuts import render
-from core.models import BabyRecord, BabyGrowthMap, BabyStatus
+from django.shortcuts import render, redirect
+from core.models import BabyRecord, BabyGrowthMap, BabyStatus, FamilyMember
 from views import baby_utils
-from views.pregnancycase import  get_pregnancy_status
+from views.pregnancycase import get_pregnancy_status
+from views.session_utils import get_current_user_profile
 
 
 
@@ -101,8 +102,19 @@ def _get_baby_milestones_summary(baby):
 
 def baby(request):
     """主頁總覽"""
+    user = get_current_user_profile(request)
+    if not user:
+        return redirect('login')
+
     active_baby = baby_utils.get_active_baby(request)
+
+    if active_baby and active_baby.pregnancycase and active_baby.pregnancycase.user_id != user.user_id:
+        membership = FamilyMember.objects.filter(pregnancycase=active_baby.pregnancycase, user=user).first()
+        if not baby_utils.has_permission(membership, 'baby_records', 'view'):
+            return redirect('profile')
+
     records = list(BabyRecord.objects.filter(baby=active_baby).order_by('-date')) if active_baby else []
+    
     for record in records: record.milestones, record.note_text = baby_utils.split_note_and_milestones(record)
 
     try: selected_date = datetime.date.fromisoformat(request.GET.get('date', '')) if request.GET.get('date') else datetime.date.today()

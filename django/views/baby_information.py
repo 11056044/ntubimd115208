@@ -1,7 +1,7 @@
 import datetime
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
-from core.models import BabyInformation
+from core.models import BabyInformation, FamilyMember
 from views import baby_utils
 from views.pregnancycase import resolve_active_pregnancy_case, validate_birth_datetime
 from views.session_utils import get_current_user_profile
@@ -14,6 +14,11 @@ def add_baby_information(request):
     case = resolve_active_pregnancy_case(request, user)
     if not case: 
         return redirect('pregnancy_case')
+
+    if case.user_id != user.user_id:
+        membership = FamilyMember.objects.filter(pregnancycase=case, user=user).first()
+        if not baby_utils.has_permission(membership, 'baby_records', 'edit'):
+            return redirect('pregnancy_case')
 
     if request.method == 'POST':
         b_time = None
@@ -78,6 +83,10 @@ def delete_baby_information(request):
 
 # ==================== 2. 編輯功能 ====================
 def edit_baby_information(request):
+    user = get_current_user_profile(request)
+    if not user:
+        return redirect('login')
+
     # 從 URL 參數強制切換 active_baby（供 pregnancycase 頁面的登記出生按鈕使用）
     baby_id_param = request.GET.get('baby_id')
     if baby_id_param:
@@ -92,6 +101,11 @@ def edit_baby_information(request):
     active_baby = baby_utils.get_active_baby(request)
     if active_baby is None: 
         return redirect('pregnancy_case')
+
+    if active_baby.pregnancycase and active_baby.pregnancycase.user_id != user.user_id:
+        membership = FamilyMember.objects.filter(pregnancycase=active_baby.pregnancycase, user=user).first()
+        if not baby_utils.has_permission(membership, 'baby_records', 'edit'):
+            return redirect('babyinformation')
 
     if request.method == 'POST':
         # 修正原先程式漏掉的縮排
@@ -162,6 +176,3 @@ def edit_baby_information(request):
         'lmp_date_value':    lmp_date_value,  
         'birth_weeks_value': birth_weeks_value, 
     })
-
-
-

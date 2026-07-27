@@ -48,5 +48,6 @@ urlpatterns = [
     path('edit_userprofile/', userprofile.edit_userprofile, name='edit_userprofile'),
     path('userprofile/update_profile/', userprofile.update_profile, name='update_profile'),
 	path('edit_family_member/', edit_family_member.edit_family_member, name='edit_family_member'),
+    path('edit_helper_permissions/', edit_family_member.edit_helper_permissions, name='edit_helper_permissions'),
     path('join_family/', userprofile.join_family, name='join_family'),
 ]

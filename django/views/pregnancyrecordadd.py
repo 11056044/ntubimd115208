@@ -11,6 +11,8 @@ from core.models import Feeling, PhysicalCondition, PregnancyRecord, Prenatalrec
 from .pregnancyrecords import records_for_case
 from views.pregnancycase import resolve_active_pregnancy_case, url_with_active_selection
 from views.session_utils import get_current_user_profile
+from views import baby_utils
+from core.models import FamilyMember
 
 
 def _records_for_scope(pregnancy_case, current_user):
@@ -128,7 +130,14 @@ def _date_to_safe_datetime(date_value):
 def pregnancyrecord(request):
     current_user = get_current_user_profile(request)
     pregnancy_case = resolve_active_pregnancy_case(request, current_user) if current_user else None
+
+    if pregnancy_case and current_user and pregnancy_case.user_id != current_user.user_id:
+        membership = FamilyMember.objects.filter(pregnancycase=pregnancy_case, user=current_user).first()
+        if not baby_utils.has_permission(membership, 'mom_records', 'view'):
+            return redirect('profile')
+
     raw = request.GET.get('date')
+
     try:
         selected_date = datetime.date.fromisoformat(raw) if raw else datetime.date.today()
     except Exception:
@@ -377,6 +386,19 @@ def pregnancyrecord_add(request):
         return redirect('login')
 
     pregnancy_case = resolve_active_pregnancy_case(request, current_user)
+    membership = None
+    if pregnancy_case and pregnancy_case.user_id != current_user.user_id:
+        membership = FamilyMember.objects.filter(pregnancycase=pregnancy_case, user=current_user).first()
+        if not baby_utils.has_permission(membership, 'mom_records', 'view'):
+            return redirect('profile')
+        
+    def _can_edit_records():
+        if not pregnancy_case:
+            return True
+        if pregnancy_case.user_id == current_user.user_id:
+            return True
+        return baby_utils.has_permission(membership, 'mom_records', 'edit')
+
     selected_date = _parse_selected_date(request.GET.get('date') or request.POST.get('check_date'))
 
     preg_from_get = None
@@ -407,6 +429,10 @@ def pregnancyrecord_add(request):
     )
 
     if request.method == 'POST':
+        if not _can_edit_records():
+            return redirect(url_with_active_selection(
+                request, '/pregnancyrecord/', {'date': selected_date.isoformat()}
+            ))
         with transaction.atomic():
             weight = request.POST.get('weight') or None
             record = request.POST.get('record') or ''
@@ -595,3 +621,5 @@ def pregnancyrecord_add(request):
         'selected_day_record_id': selected_day_record.pregnancyrecord_id if selected_day_record else None,
     }
     return render(request, 'pregnancy/pregnancyrecordadd.html', context)
+
+
