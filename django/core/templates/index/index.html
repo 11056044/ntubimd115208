@@ -144,6 +144,10 @@
                                         <span class="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-bold shrink-0">{{ care.carestatus.carestatus|default:'提醒' }}</span>
                                         <span class="text-sm font-semibold {% if care.state %}text-on-surface/50 line-through{% else %}text-on-surface{% endif %} truncate">{{ care.content }}</span>
                                     </div>
+                                    {% if care.user %}
+                                    <!--哪位user新增的提醒事項 -->
+                                    <span class="text-[10px] text-on-surface-variant/70 mt-0.5 block"> {{ care.user.name }} 新增</span>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endfor %}
