@@ -7,7 +7,8 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 
-from core.models import CareRecord, UserProfile, PregnancyRecord, BabyRecord
+from core.models import CareRecord, UserProfile, PregnancyRecord, BabyRecord, FamilyMember
+from views import baby_utils
 from .pregnancyrecords import records_for_case
 from views.pregnancycase import (
     build_pregnancy_progress,
@@ -106,8 +107,17 @@ def index(request):
     baby_chart_data = _build_baby_chart_data(active_baby)
     pregnancy_progress = build_pregnancy_progress(pregnancy_case, today)
 
-    care_queryset = CareRecord.objects.select_related('carestatus').order_by('recordtime', 'carerecord_id')
-    care_queryset = care_queryset.filter(user=current_user)
+    can_view_care = True
+    #哪位user新增的提醒事項
+    care_queryset = CareRecord.objects.select_related('carestatus', 'user').order_by('recordtime', 'carerecord_id')
+    if pregnancy_case:
+        if pregnancy_case.user_id != current_user.user_id:
+            membership = FamilyMember.objects.filter(pregnancycase=pregnancy_case, user=current_user).first()
+            can_view_care = baby_utils.has_permission(membership, 'care_records', 'view', default='view')
+        care_queryset = care_queryset.filter(pregnancycase=pregnancy_case) if can_view_care else care_queryset.none()
+    else:
+        # 還沒有任何 active case 時退回舊行為，避免整段壞掉
+        care_queryset = care_queryset.filter(user=current_user)
 
     window_start_dt, _ = _day_bounds_in_taiwan(window_start)
     _, window_end_exclusive = _day_bounds_in_taiwan(window_end)
@@ -177,5 +187,6 @@ def index(request):
         'pregnancy_progress': pregnancy_progress,
         'active_baby': active_baby,
         'current_user': current_user,
+        'can_view_care': can_view_care,
     }
     return render(request, 'index/index.html', context)

@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 from django.db import models
 from .CareStatus import CareStatus
 from .UserProfile import UserProfile
+from .PregnancyCase import PregnancyCase
 
 class CareRecord(models.Model):
     carerecord_id = models.AutoField(primary_key=True)
@@ -12,6 +13,7 @@ class CareRecord(models.Model):
     content = models.CharField(max_length=100, null=True, blank=True)
     state = models.BooleanField(default=False)
     create_time = models.DateTimeField()
+    pregnancycase = models.ForeignKey(PregnancyCase, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         db_table = 'carerecord'
