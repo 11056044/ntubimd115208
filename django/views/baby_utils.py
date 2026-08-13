@@ -93,21 +93,28 @@ def build_growth_timeline_context(baby):
     growth_maps = BabyGrowthMap.objects.all().order_by('timecourse')
     
     # 1. 取得已完成里程碑關聯表
-    completed_ids = set(
-        BabyStatus.objects.filter(babyrecord__baby=baby).values_list('babygrowthmap_id', flat=True)
-    )
+    completed_statuses = {
+        status.babygrowthmap_id: status.babyrecord
+        for status in BabyStatus.objects.filter(babyrecord__baby=baby).select_related('babyrecord')
+    }
     
     # 2. 取得歷史紀錄文字雜湊（向下相容舊資料）
-    milestone_text_set = set()
+    milestone_text_set = {}
     for rec in BabyRecord.objects.filter(baby=baby):
-        # 呼叫現有的分割文字工具
         m, _ = split_note_and_milestones(rec)
-        milestone_text_set.update(m)
+        for name in m:
+            milestone_text_set[name] = rec
         
     # 3. 建立統一的 Timeline 資料結構
     growth_timeline = []
     for g_map in growth_maps:
-        is_completed = (g_map.babygrowthmap_id in completed_ids or g_map.growthrecord in milestone_text_set)
+        record = completed_statuses.get(g_map.babygrowthmap_id)
+        if not record and g_map.growthrecord in milestone_text_set:
+            record = milestone_text_set[g_map.growthrecord]
+            
+        is_completed = record is not None
+        achieved_date = record.date.strftime('%Y/%m/%d') if record else ""
+        photo = record.photo if record else None
         
         growth_timeline.append({
             "map_id": g_map.babygrowthmap_id,
@@ -116,8 +123,8 @@ def build_growth_timeline_context(baby):
             "status": "completed" if is_completed else "pending",
             "description": "", 
             "category": "",   
-            "photo": None,
-            "achieved_date": "" # 可根據需求再擴充關聯日期
+            "photo": photo,
+            "achieved_date": achieved_date
         })
         
     return {
@@ -126,20 +133,19 @@ def build_growth_timeline_context(baby):
     }
 
 
-FEATURE_KEYS = ('baby_records', 'mom_records', 'helper_list', 'growth', 'care_records')
+FEATURE_KEYS = ('baby_records', 'mom_records', 'helper_list', 'growth')
 PERMISSION_LEVELS = ('off', 'view', 'edit')
 
-def get_permission(member, feature, default='view'):
+def get_permission(member, feature, default='off'):
     """讀取某位協助者對某個功能的權限等級。member 為 None（找不到成員）視為 off。"""
     if member is None:
         return default
     value = (member.permissions or {}).get(feature, default)
     return value if value in PERMISSION_LEVELS else default
 
-def has_permission(member, feature, required='view', default='view'):
-    """required='view' 時，view/edit 皆通過；required='edit' 時，只有 edit 通過。
-    default：當該 feature 尚未被設定過時的預設等級。"""
-    level = get_permission(member, feature, default=default)
+def has_permission(member, feature, required='view'):
+    """required='view' 時，view/edit 皆通過；required='edit' 時，只有 edit 通過。"""
+    level = get_permission(member, feature)
     if required == 'edit':
         return level == 'edit'
     return level in ('view', 'edit')
