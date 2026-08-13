@@ -16,6 +16,7 @@ from views import (
     baby_record,
     baby_growthmap,
     ai_growth,
+    social_sharing_card,
 )
 
 
@@ -55,6 +56,12 @@ urlpatterns = [
         'logout/',
         login.logout_user,
         name='logout'
+    ),
+
+    path(
+        'demo_login/',
+        login.demo_login,
+        name='demo_login'
     ),
 
 
@@ -197,6 +204,16 @@ urlpatterns = [
         'ai-growth/',
         ai_growth.ai_growth,
         name='ai_growth'
+    ),
+
+
+    # ======================
+    # 社群分享卡片
+    # ======================
+    path(
+        'social_sharing_card/',
+        social_sharing_card.social_sharing_card_view,
+        name='social_sharing_card'
     ),
 
 
