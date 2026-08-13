@@ -133,19 +133,20 @@ def build_growth_timeline_context(baby):
     }
 
 
-FEATURE_KEYS = ('baby_records', 'mom_records', 'helper_list', 'growth')
+FEATURE_KEYS = ('baby_records', 'mom_records', 'helper_list', 'growth', 'care_records')
 PERMISSION_LEVELS = ('off', 'view', 'edit')
 
-def get_permission(member, feature, default='off'):
+def get_permission(member, feature, default='view'):
     """讀取某位協助者對某個功能的權限等級。member 為 None（找不到成員）視為 off。"""
     if member is None:
         return default
     value = (member.permissions or {}).get(feature, default)
     return value if value in PERMISSION_LEVELS else default
 
-def has_permission(member, feature, required='view'):
-    """required='view' 時，view/edit 皆通過；required='edit' 時，只有 edit 通過。"""
-    level = get_permission(member, feature)
+def has_permission(member, feature, required='view', default='view'):
+    """required='view' 時，view/edit 皆通過；required='edit' 時，只有 edit 通過。
+    default：當該 feature 尚未被設定過時的預設等級。"""
+    level = get_permission(member, feature, default=default)
     if required == 'edit':
         return level == 'edit'
     return level in ('view', 'edit')
