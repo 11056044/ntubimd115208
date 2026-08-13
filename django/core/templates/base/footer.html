@@ -47,13 +47,15 @@
             location.pathname.startsWith('/edit_pregnancy_case/')
         ),
 
-        // 嬰幼兒主頁、基本資料、生長紀錄、圖表
+        // 嬰幼兒主頁、基本資料、生長紀錄、圖表、歷史回顧
         growth: (location) => (
             location.pathname.startsWith('/babyinformation/') ||
             location.pathname.startsWith('/babygrowthmap/') ||
             location.pathname.startsWith('/add_baby_information/') ||
             location.pathname.startsWith('/edit_baby_information/') ||
-            location.pathname.startsWith('/babyrecord/') // 🔥 完美涵蓋 /babyrecord/add/, /edit/, /delete/
+            location.pathname.startsWith('/babyrecord/') || // 🔥 完美涵蓋 /babyrecord/add/, /edit/, /delete/
+            location.pathname.startsWith('/history-review/') ||
+            location.pathname.startsWith('/history_review/')
         ),
 
         // 知識問答

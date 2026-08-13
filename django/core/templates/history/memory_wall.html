@@ -1,290 +1,187 @@
-<!DOCTYPE html>
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}成長相簿 - 歷史回顧{% endblock %}
 
-<html lang="zh-Hant"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>回憶牆 - The Ethereal Nursery</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "on-tertiary-fixed": "#4b2334",
-                    "on-secondary-fixed-variant": "#2b5e71",
-                    "secondary-dim": "#215669",
-                    "on-error-container": "#510017",
-                    "on-surface": "#2e2f2d",
-                    "on-primary-fixed": "#362459",
-                    "surface-tint": "#65518a",
-                    "primary-container": "#d6beff",
-                    "outline-variant": "#adadab",
-                    "on-primary-container": "#4b386e",
-                    "primary-dim": "#59467d",
-                    "on-secondary": "#e4f5ff",
-                    "surface-container-high": "#e3e3df",
-                    "on-secondary-fixed": "#014154",
-                    "error-container": "#f74b6d",
-                    "on-secondary-container": "#1f5467",
-                    "inverse-surface": "#0d0f0d",
-                    "tertiary-container": "#f8bbd0",
-                    "primary": "#65518a",
-                    "inverse-on-surface": "#9d9d9a",
-                    "secondary-container": "#b2e4fb",
-                    "surface-container-lowest": "#ffffff",
-                    "secondary-fixed-dim": "#a4d6ed",
-                    "surface-container": "#e8e8e5",
-                    "error": "#b41340",
-                    "surface-container-highest": "#ddddd9",
-                    "tertiary": "#7d4d5f",
-                    "outline": "#767775",
-                    "primary-fixed-dim": "#c8b1f0",
-                    "surface-variant": "#ddddd9",
-                    "on-tertiary": "#ffeff2",
-                    "on-error": "#ffefef",
-                    "inverse-primary": "#d6beff",
-                    "error-dim": "#a70138",
-                    "on-primary-fixed-variant": "#544178",
-                    "on-primary": "#f8efff",
-                    "surface-container-low": "#f1f1ee",
-                    "on-tertiary-container": "#623648",
-                    "background": "#f7f6f3",
-                    "tertiary-fixed-dim": "#e9aec3",
-                    "primary-fixed": "#d6beff",
-                    "surface-dim": "#d4d5d1",
-                    "on-surface-variant": "#5b5c5a",
-                    "tertiary-dim": "#6f4253",
-                    "on-background": "#2e2f2d",
-                    "tertiary-fixed": "#f8bbd0",
-                    "on-tertiary-fixed-variant": "#6c3f51",
-                    "surface": "#f7f6f3",
-                    "secondary": "#2f6275",
-                    "secondary-fixed": "#b2e4fb",
-                    "surface-bright": "#f7f6f3"
-            },
-            "borderRadius": {
-                    "DEFAULT": "1rem",
-                    "lg": "2rem",
-                    "xl": "3rem",
-                    "full": "9999px"
-            },
-            "fontFamily": {
-                    "headline": ["Plus Jakarta Sans"],
-                    "display": ["Plus Jakarta Sans"],
-                    "body": ["Be Vietnam Pro"],
-                    "label": ["Be Vietnam Pro"]
-            }
-          },
-        },
-      }
-    </script>
-<style>
-        body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #f7f6f3; color: #2e2f2d; -webkit-font-smoothing: antialiased; }
-        .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .glass { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .masonry { column-count: 2; column-gap: 1.5rem; }
-        .masonry-item { break-inside: avoid; margin-bottom: 1.5rem; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
-<body class="bg-background selection:bg-primary-container selection:text-on-primary-container">
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl flex items-center justify-between px-6 h-16 w-full">
-<div class="flex items-center gap-4">
-<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200">
-<span class="material-symbols-outlined" data-icon="menu">menu</span>
-</button>
-<div class="flex flex-col">
-<h1 class="font-headline font-bold text-primary text-title-lg tracking-tight leading-tight">回憶牆</h1>
-<p class="text-[10px] text-on-surface-variant font-medium tracking-wide">收藏每一個值得紀念的瞬間</p>
-</div>
-</div>
-<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200">
-<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-</button>
-</header>
-<main class="pt-24 pb-32 px-6 max-w-4xl mx-auto">
-<!-- Featured Section: 那年今天 -->
-<section class="mb-10">
-<div class="flex items-center justify-between mb-4 px-2">
-<h2 class="font-headline text-xl font-bold text-primary tracking-tight">那年今天</h2>
-<span class="text-xs font-bold text-on-surface-variant/60 tracking-widest uppercase">Memory Reel</span>
-</div>
-<div class="relative group cursor-pointer overflow-hidden rounded-xl bg-surface-container-lowest shadow-[0_20px_40px_rgba(46,47,45,0.06)] transition-all duration-500 hover:scale-[1.01]">
-<div class="aspect-[4/5] md:aspect-[16/9] w-full overflow-hidden">
-<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-110" data-alt="A warm, ethereal high-key photograph of a baby's first ultrasound image lying on a soft, cream-colored knitted blanket. Beside the ultrasound is a small pair of white hand-knitted baby booties. The lighting is soft and golden, creating a nostalgic and sacred atmosphere typical of a premium nursery brand. The overall palette consists of soft lavenders, creams, and whites." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDHnc7jWcpqPwMv5qi35lt9ph4DFQFC6cvT1wI4K-e-V918lGhQheU_gwSBSnBrnur4za4eNT28m7Ir4skehiJj0IrC8Hffwg5_A8giZXv3UiEO31oERkVMMCJyrHxG2b_U8aR7QutyWIiO3h4Zo_zuL1khgdJD7PS53syPO621fX0Ms-aup9UXGnsPYSL69Tx3LEHFe8w7WnU9ngN6301o2eiTJyu2zZEZTLyHDzPJsnv5I_wTIFYUrw')">
-</div>
-</div>
-<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-<div class="absolute bottom-0 left-0 p-8 text-white">
-<p class="text-sm font-medium opacity-80 mb-2 font-headline tracking-wide">2025 / 04 / 12</p>
-<h3 class="text-2xl font-bold font-headline leading-tight">「一年前的今天，第一次聽見寶寶心跳 ❤️」</h3>
-</div>
-</div>
-</section>
-<!-- Photo Gallery: 2026 / 04 -->
-<section class="mb-10">
-<div class="flex items-center gap-3 mb-6 px-2">
-<div class="h-[2px] w-8 bg-primary-container rounded-full"></div>
-<h2 class="font-headline text-lg font-bold text-on-surface tracking-tight">2026 / 04</h2>
-</div>
-<div class="masonry">
-<!-- Card 1 -->
-<div class="masonry-item group">
-<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(46,47,45,0.04)] hover:shadow-xl transition-all">
-<div class="aspect-square bg-cover bg-center" data-alt="A candid, high-resolution portrait of a 4-month-old baby with a giant, gummy smile, eyes sparkling with joy. The baby is resting on a plush lavender-colored rug. The style is bright and airy, with soft focus in the background emphasizing the baby's expression. Soft natural lighting from a nearby window illuminates the scene." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC51vGriLVParj6quTTK_p34cx328YuVP_TUZM_KpF-iMN62vK0oFoMZpFsbyv1Ytqpraa5vZ46WsO_1RkN2mjAtQCsf78KNH6EZQ7qG_Upl30WU6ZmKtMDK1rVnebJaX103jnCq1CRix3WngfTQjHR91gTaJfUmRiTQ0YPU-K1WIHxfZ9VDL7thFsoQIItyAIVxvt0X3RDuAiWmjr4ROCsPEVen4QqgmtUWutTr6TzTVxvl-uy6NkTrA')">
-</div>
-<div class="p-4">
-<div class="flex items-center gap-2 mb-1">
-<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">4個月</span>
-</div>
-<h4 class="font-bold text-on-surface text-sm">第一次開懷大笑</h4>
-<p class="text-[10px] text-on-surface-variant mt-1 italic">「銀鈴般的笑聲，是世上最美的音樂」</p>
-</div>
-</div>
-</div>
-<!-- Card 2 -->
-<div class="masonry-item group">
-<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(46,47,45,0.04)] hover:shadow-xl transition-all">
-<div class="aspect-[3/4] bg-cover bg-center" data-alt="Close-up shot of a baby's tiny hand holding an adult's finger. The skin tones are warm and soft, with a dreamy, shallow depth of field. The background is a blurred nursery with soft pastel tones. The mood is peaceful and tender, reflecting a strong emotional bond." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBZLt2JpHGzDAv3yD6lXIM_jKgoUg7ha2Kg5UA03OFycomv5EayWzCWaQ_1xMOoU5sLDjuiYaE-faRgUJnf__9_z3vUm7Muiqc2UTFMqdIG2I72NWu1sJhtvwuWFN013CmOIGFcTl_4FbW2t_0ZcYZ_D4dqNkIY2s42RnIrGFhFywvqp08qMRiPEQM_BilA1xuoKciNT-5OVHZ0ALAhvsj10ccmrcxvtHG-HSrEvyYlL-gDYWDsxg6HKA')">
-</div>
-<div class="p-4">
-<div class="flex items-center gap-2 mb-1">
-<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">4個月</span>
-</div>
-<h4 class="font-bold text-on-surface text-sm">緊緊握住的手</h4>
-</div>
-</div>
-</div>
-<!-- Card 3 -->
-<div class="masonry-item group">
-<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(46,47,45,0.04)] hover:shadow-xl transition-all">
-<div class="aspect-[4/3] bg-cover bg-center" data-alt="A lifestyle photo of a baby during tummy time, successfully lifting their head high and looking forward with determination. The setting is a minimalist, modern nursery with clean white walls and light wood furniture. The lighting is bright and airy, enhancing the sense of growth and milestone achievement." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBkCfhUHDq7Ybije3DrgJS7Wck0ihy8lK0-5jTlhZkUAsIjK3lyAXQ2YLA09b5yyp9ALI9LBRAfkWGkz7pHbAeyM-JrQSD5_H6mkl47zOr3cUar5UKAsiPb9tkgJo5tLmIXAN_Q_q_DRVvem99sPnEanOTBaAQgJEIGQJt2Se5m2KIe7Y6YVkDlS2H5fxQN8MPfG7RtQYdWBa2A2Q1LfSyDP1IjuxJh_ts68FOk3AXoMDckd2ieFimU5A')">
-</div>
-<div class="p-4">
-<div class="flex items-center gap-2 mb-1">
-<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">4個月</span>
-</div>
-<h4 class="font-bold text-on-surface text-sm">第一次抬頭成功</h4>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- Photo Gallery: 2026 / 03 -->
-<section class="mb-10">
-<div class="flex items-center gap-3 mb-6 px-2">
-<div class="h-[2px] w-8 bg-primary-container rounded-full"></div>
-<h2 class="font-headline text-lg font-bold text-on-surface tracking-tight">2026 / 03</h2>
-</div>
-<div class="masonry">
-<!-- Card 4 -->
-<div class="masonry-item group">
-<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(46,47,45,0.04)] hover:shadow-xl transition-all">
-<div class="aspect-square bg-cover bg-center" data-alt="A sweet photograph of a baby peacefully sleeping in a white wooden crib. The baby is swaddled in a soft lavender muslin wrap. The overhead shot captures the stillness and purity of the moment. Soft, diffuse morning light fills the room, highlighting the delicate textures of the fabric." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBqbY6Y_Mqkijmmy1qONN4pHuJxTspFdVrNlWONTgMi77X2UJieZNATfxKfrRbW-8rjg8BHOqFRG-1BfS0FVPUPhKcP6onCLVwr6477kOduF5vLqlVkzxA-XJ1ar-4uXV8dgoVzLvZozbrHNjCzFTrL7Z80I3k0re1DXb5wJPflVwzG89_ZH0YzFoHVXbrLoBGMRCwv8YhrZkVoD__2ZhrVhsO5lVK74WpTvYL3OTxeFnCVSzuIwgLvAg')">
-</div>
-<div class="p-4">
-<div class="flex items-center gap-2 mb-1">
-<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">3個月</span>
-</div>
-<h4 class="font-bold text-on-surface text-sm">沉睡的小天使</h4>
-</div>
-</div>
-</div>
-<!-- Card 5 -->
-<div class="masonry-item group">
-<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(46,47,45,0.04)] hover:shadow-xl transition-all">
-<div class="aspect-[3/2] bg-cover bg-center" data-alt="A playful shot of a baby's feet wearing tiny knitted bear-themed socks. The baby is kicking in the air against a neutral background. The image is full of energy and movement, captured with a fast shutter speed to keep everything crisp. The color palette is composed of soft creams and warm browns." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDAIi1sAyvCap3DKGQjnUMECU8pgC1D632m9hfDfYOMzGqYs5CE0JKdTh8muwTgHMFYtpWcvQQqysQ4AQDWMbHblGLq-PObcQ493kCeayYfCu8TW5NBXljlTRaO2y9UFd19izg-UispJ1IWxlVMLoxzuYkSGT-sLFAEUJM4Os0JzNg940sFQjqc53GVEoiOjKsUPWmxD7JUCEvFRkVZ7bfxZVEGOBqYCkJwD2ISd4JZVjeBL_YncR7JBg')">
-</div>
-<div class="p-4">
-<div class="flex items-center gap-2 mb-1">
-<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">3個月</span>
-</div>
-<h4 class="font-bold text-on-surface text-sm">有力的小腳丫</h4>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- AI Share Card Section -->
-<section class="mt-16 mb-8">
-<div class="bg-gradient-to-br from-primary via-primary-dim to-secondary p-8 rounded-xl relative overflow-hidden group">
-<!-- Decorative element -->
-<div class="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-<div class="absolute -bottom-12 -left-12 w-32 h-32 bg-secondary-container/20 rounded-full blur-2xl"></div>
-<div class="relative z-10 flex flex-col items-center text-center">
-<span class="material-symbols-outlined text-secondary-container text-4xl mb-4" data-icon="auto_awesome">auto_awesome</span>
-<h3 class="text-2xl font-bold text-white font-headline mb-2">AI 分享卡</h3>
-<p class="text-white/80 text-sm max-w-xs mb-8 leading-relaxed">讓 AI 為您精選本月最動人的瞬間，生成專屬的成長紀念報，與親友分享這份喜悅。</p>
-<button class="bg-surface-container-lowest text-primary px-8 py-3 rounded-full font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
-                        立即生成分享卡
-                        <span class="material-symbols-outlined text-lg" data-icon="arrow_forward">arrow_forward</span>
-</button>
-</div>
-</div>
-</section>
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/history.css' %}">
+
+<main class="mx-auto px-4 sm:px-6 pt-5 pb-32 max-w-md md:max-w-3xl lg:max-w-4xl w-full transition-all duration-300">
+    
+    <!-- ========================================== -->
+    <!-- 共同 Header -->
+    <!-- ========================================== -->
+    <div class="flex items-center justify-between mb-4">
+        <button onclick="window.location.href='/history-review/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}'" class="flex items-center gap-1.5 text-xs font-bold text-[#8064A2] bg-[#EDE5F5] hover:bg-[#A98BC7]/20 px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer" type="button">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            <span>返回</span>
+        </button>
+        <span class="text-[11px] font-bold text-[#81758A] bg-white border border-[#E8E0EF] px-3 py-1 rounded-full shadow-2xs">
+            📸 成長相簿
+        </span>
+    </div>
+
+    <header class="mb-5">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans'] tracking-tight">
+            成長相簿
+        </h1>
+        <p class="text-xs sm:text-sm font-medium text-[#81758A] font-['Be_Vietnam_Pro'] mt-1">
+            「收藏每一個值得記住的瞬間」
+        </p>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- 頂部 Summary Card -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-3xl p-5 sm:p-6 mb-6 border border-[#E8E0EF] shadow-[0_4px_20px_rgba(128,100,162,0.05)]">
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-extrabold text-[#8064A2] tracking-wider uppercase bg-[#EDE5F5] px-2.5 py-0.5 rounded-full">
+                    PHOTO MEMORIES
+                </span>
+                <h2 class="text-lg sm:text-xl font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] mt-1.5">
+                    我們的成長
+                </h2>
+                <div class="flex items-center gap-3 mt-1.5 text-xs font-bold text-[#81758A]">
+                    <span class="text-[#8064A2] bg-[#FAF8FC] border border-[#E8E0EF] px-2.5 py-0.5 rounded-full">
+                        {{ current_week }} 週
+                    </span>
+                    <span>{{ total_photos_count }} 張回憶</span>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] shadow-2xs">
+                <span class="text-2xl">📸</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 分類 Horizontal Pill Filter -->
+    <!-- ========================================== -->
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6 -mx-1 px-1">
+        <button type="button" onclick="filterPhotos('all', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-[#A98BC7] text-white shadow-2xs">
+            全部
+        </button>
+        <button type="button" onclick="filterPhotos('pregnancy', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
+            孕期
+        </button>
+        <button type="button" onclick="filterPhotos('prenatal', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
+            產檢
+        </button>
+        <button type="button" onclick="filterPhotos('baby', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
+            寶寶
+        </button>
+        <button type="button" onclick="filterPhotos('important', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
+            重要時刻
+        </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 照片 2-Column Grid -->
+    <!-- ========================================== -->
+    {% if has_photos %}
+    <div class="grid grid-cols-2 gap-3.5 sm:gap-5">
+        {% for p in photos %}
+        <div class="photo-card-item group bg-white rounded-3xl overflow-hidden shadow-2xs border border-[#E8E0EF] hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer" data-category="{{ p.category }}" onclick="openPhotoModal('{{ p.photo }}', '{{ p.title }}', '{{ p.date }}', '{{ p.week_label }}', '{{ p.notes }}')">
+            
+            <!-- 圖片容器 (1:1 比例) -->
+            <div class="relative aspect-square bg-[#FAF8FC] overflow-hidden">
+                <img src="{{ p.photo }}" alt="{{ p.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                
+                <!-- 標籤 overlay -->
+                <div class="absolute bottom-2 left-2 bg-black/50 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {{ p.week_label }}
+                </div>
+
+                <!-- 重要照片 ⭐ 標記 -->
+                {% if p.is_important %}
+                <div class="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/90 shadow-xs flex items-center justify-center text-amber-500 text-xs">
+                    ⭐
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 照片下方簡短資訊 -->
+            <div class="p-3">
+                <div class="flex items-center justify-between text-[10px] text-[#81758A] font-semibold mb-0.5">
+                    <span>{{ p.date }}</span>
+                    <span class="text-[#8064A2] font-bold">{{ p.type_label }}</span>
+                </div>
+                <h3 class="text-xs sm:text-sm font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] line-clamp-1 group-hover:text-[#8064A2] transition-colors">
+                    {{ p.title }}
+                </h3>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16 px-6 bg-white rounded-3xl border border-[#E8E0EF] shadow-2xs">
+        <span class="material-symbols-outlined text-5xl text-[#A98BC7]/50 mb-3 block">photo_library</span>
+        <h3 class="text-base font-bold text-[#4A4052] mb-1">還沒有成長照片</h3>
+        <p class="text-xs text-[#81758A] mb-5 max-w-xs mx-auto">
+            把值得記住的時刻收藏下來吧，每次產檢與日常點滴都是最珍貴的禮物！
+        </p>
+        <a href="/pregnancyrecord/add/" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#8064A2] hover:bg-[#6c518d] px-5 py-2.5 rounded-full transition-colors shadow-xs">
+            <span class="material-symbols-outlined text-sm">add_a_photo</span>
+            <span>新增照片</span>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- 點擊照片 Lightbox Modal -->
+    <!-- ========================================== -->
+    <div id="photo-lightbox-modal" class="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" onclick="closePhotoModal()">
+        <div class="relative max-w-md w-full bg-white rounded-3xl overflow-hidden shadow-2xl p-4 sm:p-5" onclick="event.stopPropagation()">
+            <button onclick="closePhotoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors z-10 cursor-pointer">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+            <div class="aspect-square rounded-2xl overflow-hidden bg-[#FAF8FC] mb-3 flex items-center justify-center">
+                <img id="lightbox-img" src="" alt="放大照片" class="w-full h-full object-contain">
+            </div>
+            <div class="flex items-center justify-between text-xs text-[#81758A] font-bold mb-1">
+                <span id="lightbox-date"></span>
+                <span id="lightbox-week" class="bg-[#EDE5F5] text-[#8064A2] px-2 py-0.5 rounded-full text-[10px]"></span>
+            </div>
+            <h3 id="lightbox-title" class="text-sm sm:text-base font-bold text-[#4A4052] mb-1"></h3>
+            <p id="lightbox-notes" class="text-xs text-[#81758A] leading-relaxed"></p>
+        </div>
+    </div>
+
 </main>
-<!-- BottomNavBar -->
-<nav class="fixed bottom-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-surface/70 backdrop-blur-xl rounded-t-xl z-50 shadow-[0_-20px_40px_rgba(46,47,45,0.06)]">
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1.5 active:scale-90 transition-transform duration-150" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
-<span class="font-label text-label-sm font-medium">首頁</span>
-</a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1.5 active:scale-90 transition-transform duration-150" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="edit_note">edit_note</span>
-<span class="font-label text-label-sm font-medium">紀錄</span>
-</a>
-<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-5 py-1.5 transition-all active:scale-90" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="auto_graph" style="font-variation-settings: 'FILL' 1;">auto_graph</span>
-<span class="font-label text-label-sm font-medium">成長</span>
-</a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1.5 active:scale-90 transition-transform duration-150" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="auto_stories">auto_stories</span>
-<span class="font-label text-label-sm font-medium">知識</span>
-</a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1.5 active:scale-90 transition-transform duration-150" href="#">
-<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
-<span class="font-label text-label-sm font-medium">個人</span>
-</a>
-</nav>
-<!-- FAB for adding new memory -->
-<button class="fixed bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-[0_20px_40px_rgba(101,81,138,0.3)] flex items-center justify-center active:scale-90 transition-all z-40">
-<span class="material-symbols-outlined text-3xl" data-icon="add_a_photo">add_a_photo</span>
-</button>
-<script>
-        // Micro-interactions for masonry items
-        document.querySelectorAll('.masonry-item').forEach(item => {
-            item.addEventListener('touchstart', function() {
-                this.classList.add('scale-[0.98]');
-            });
-            item.addEventListener('touchend', function() {
-                this.classList.remove('scale-[0.98]');
-            });
-        });
 
-        // Simple scroll reveal for header
-        let lastScroll = 0;
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset;
-            const header = document.querySelector('header');
-            if (currentScroll > lastScroll && currentScroll > 100) {
-                header.style.transform = 'translateY(-100%)';
-            } else {
-                header.style.transform = 'translateY(0)';
-            }
-            header.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            lastScroll = currentScroll;
+<script>
+    function filterPhotos(category, btn) {
+        document.querySelectorAll('.photo-filter-btn').forEach(b => {
+            b.className = 'photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]';
         });
-    </script>
-</body></html>
+        btn.className = 'photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-[#A98BC7] text-white shadow-2xs';
+
+        document.querySelectorAll('.photo-card-item').forEach(card => {
+            if (category === 'all' || card.dataset.category === category || (category === 'important' && card.dataset.category === 'prenatal')) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function openPhotoModal(src, title, date, week, notes) {
+        const modal = document.getElementById('photo-lightbox-modal');
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox-title').textContent = title || '成長照片';
+        document.getElementById('lightbox-date').textContent = date || '';
+        document.getElementById('lightbox-week').textContent = week || '';
+        document.getElementById('lightbox-notes').textContent = notes || '';
+
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+    }
+
+    function closePhotoModal() {
+        const modal = document.getElementById('photo-lightbox-modal');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+    }
+</script>
+{% endblock %}

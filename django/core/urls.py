@@ -17,6 +17,7 @@ from views import (
     baby_growthmap,
     ai_growth,
     social_sharing_card,
+    history_review,
 )
 
 
@@ -258,6 +259,46 @@ urlpatterns = [
         'join_family/',
         userprofile.join_family,
         name='join_family'
+    ),
+
+
+    # ======================
+    # 歷史回顧
+    # ======================
+    path(
+        'history-review/',
+        history_review.history_review,
+        name='history_review'
+    ),
+    path(
+        'history-review/pregnancy-journey/',
+        history_review.pregnancy_journey_view,
+        name='history_pregnancy_journey'
+    ),
+    path(
+        'history-review/baby-growth/',
+        history_review.baby_growth_view,
+        name='history_baby_growth'
+    ),
+    path(
+        'history-review/memory-wall/',
+        history_review.memory_wall_view,
+        name='history_memory_wall'
+    ),
+    path(
+        'history-review/ai-growth-journey/',
+        history_review.ai_growth_journey_view,
+        name='history_ai_growth_journey'
+    ),
+    path(
+        'history-review/phase-review/',
+        history_review.ai_growth_journey_view,
+        name='history_phase_review'
+    ),
+    path(
+        'history_review/',
+        history_review.history_review,
+        name='history_review_alias'
     ),
 
 

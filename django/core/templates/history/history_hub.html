@@ -1,0 +1,348 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}歷史回顧 - CoLoGrowth{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/history.css' %}">
+
+<main class="mx-auto px-4 sm:px-6 pt-5 pb-32 max-w-md md:max-w-3xl lg:max-w-4xl w-full transition-all duration-300">
+    
+    <!-- ========================================== -->
+    <!-- 四、頁面 Header -->
+    <!-- ========================================== -->
+    <div class="flex items-center justify-between mb-4">
+        <button onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href='/'; }" class="flex items-center gap-1.5 text-xs font-bold text-[#8064A2] bg-[#EDE5F5] hover:bg-[#A98BC7]/20 px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer" type="button">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            <span>返回</span>
+        </button>
+        <span class="text-[11px] font-bold text-[#81758A] bg-white border border-[#E8E0EF] px-3 py-1 rounded-full shadow-2xs">
+            {% if active_baby %}{{ active_baby.name }}{% elif pregnancy_case %}懷孕個案{% else %}成長歷程{% endif %}
+        </span>
+    </div>
+
+    <header class="mb-6">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans'] tracking-tight">
+            歷史回顧
+        </h1>
+        <p class="text-xs sm:text-sm font-medium text-[#81758A] font-['Be_Vietnam_Pro'] mt-1">
+            「回顧我們一起走過的每個重要時刻」
+        </p>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- 五、第一個區塊：我的成長旅程 (Hero Card) -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-3xl p-5 sm:p-6 mb-6 border border-[#E8E0EF] shadow-[0_4px_20px_rgba(128,100,162,0.05)]">
+        <div class="flex items-start justify-between mb-2">
+            <div>
+                <span class="text-[10px] font-extrabold text-[#8064A2] tracking-wider uppercase bg-[#EDE5F5] px-2.5 py-0.5 rounded-full">
+                    GROWTH JOURNEY
+                </span>
+                <h2 class="text-lg sm:text-xl font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] mt-1.5">
+                    我的成長旅程
+                </h2>
+                <p class="text-xs sm:text-sm text-[#81758A] font-medium font-['Be_Vietnam_Pro'] mt-0.5">
+                    {{ journey_title }}
+                </p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] shadow-2xs">
+                <span class="material-symbols-outlined text-2xl">auto_stories</span>
+            </div>
+        </div>
+
+        <!-- 孕期進度條 -->
+        <div class="my-5 bg-[#FAF8FC] p-4 rounded-2xl border border-[#E8E0EF]/80">
+            <div class="flex items-center justify-between text-xs font-bold text-[#4A4052] mb-2">
+                <span class="flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-[#A98BC7]"></span>
+                    第 {{ current_week }} 週{% if current_day %} + {{ current_day }} 天{% endif %}
+                </span>
+                <span class="text-[11px] text-[#81758A]">目前進度 {{ progress_percent }}%</span>
+            </div>
+            
+            <div class="relative w-full h-3 bg-[#EDE5F5] rounded-full overflow-visible flex items-center">
+                <div class="h-full bg-gradient-to-r from-[#A98BC7] to-[#8064A2] rounded-full transition-all duration-700 ease-out" style="width: {{ progress_percent }}%;"></div>
+                <!-- Progress Point indicator -->
+                <div class="absolute w-4 h-4 bg-[#8064A2] border-2 border-white rounded-full shadow-xs -ml-2 transition-all duration-700" style="left: {{ progress_percent }}%;"></div>
+            </div>
+            
+            <div class="flex justify-between text-[10px] text-[#81758A] mt-2 font-medium">
+                <span>第 1 週 (起點)</span>
+                <span>第 20 週 (孕中期)</span>
+                <span>第 40 週 (預產期)</span>
+            </div>
+        </div>
+
+        <!-- 三個統計小型區塊 -->
+        <div class="grid grid-cols-3 gap-2.5 pt-3 border-t border-[#E8E0EF] text-center">
+            <div class="bg-[#FAF8FC] p-2.5 rounded-2xl border border-[#E8E0EF]/60">
+                <span class="text-lg sm:text-xl font-extrabold text-[#8064A2] font-['Plus_Jakarta_Sans'] block">
+                    {{ total_pregnancy_records }}
+                </span>
+                <span class="text-[11px] font-bold text-[#81758A]">孕期紀錄</span>
+            </div>
+            <div class="bg-[#FAF8FC] p-2.5 rounded-2xl border border-[#E8E0EF]/60">
+                <span class="text-lg sm:text-xl font-extrabold text-[#8064A2] font-['Plus_Jakarta_Sans'] block">
+                    {{ total_prenatal_records }}
+                </span>
+                <span class="text-[11px] font-bold text-[#81758A]">產檢紀錄</span>
+            </div>
+            <div class="bg-[#FAF8FC] p-2.5 rounded-2xl border border-[#E8E0EF]/60">
+                <span class="text-lg sm:text-xl font-extrabold text-[#8064A2] font-['Plus_Jakarta_Sans'] block">
+                    {{ total_growth_records }}
+                </span>
+                <span class="text-[11px] font-bold text-[#81758A]">成長紀錄</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 六、第二個區塊：四個核心功能 (2 x 2 Grid) -->
+    <!-- ========================================== -->
+    <section class="mb-8">
+        <h2 class="text-base sm:text-lg font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-[#A98BC7] rounded-full"></span>
+            核心功能
+        </h2>
+
+        <div class="grid grid-cols-2 gap-3 sm:gap-4">
+            
+            <!-- 功能 1: 📅 時間軸 -->
+            <a href="/history-review/pregnancy-journey/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}" class="history-card-hover block bg-white rounded-3xl p-4 sm:p-5 border border-[#E8E0EF] shadow-2xs cursor-pointer group flex flex-col justify-between min-h-[140px]">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] group-hover:scale-110 transition-transform">
+                        <span class="text-xl">📅</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[#81758A] group-hover:text-[#8064A2] text-sm group-hover:translate-x-0.5 transition-all">arrow_forward_ios</span>
+                </div>
+                <div class="mt-3">
+                    <h3 class="text-sm sm:text-base font-bold text-[#4A4052] group-hover:text-[#8064A2] transition-colors">
+                        時間軸
+                    </h3>
+                    <p class="text-[11px] text-[#81758A] mt-0.5 font-medium leading-tight line-clamp-1">
+                        查看完整成長歷程
+                    </p>
+                </div>
+            </a>
+
+            <!-- 功能 2: 📸 成長相簿 -->
+            <a href="/history-review/memory-wall/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}" class="history-card-hover block bg-white rounded-3xl p-4 sm:p-5 border border-[#E8E0EF] shadow-2xs cursor-pointer group flex flex-col justify-between min-h-[140px]">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] group-hover:scale-110 transition-transform">
+                        <span class="text-xl">📸</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[#81758A] group-hover:text-[#8064A2] text-sm group-hover:translate-x-0.5 transition-all">arrow_forward_ios</span>
+                </div>
+                <div class="mt-3">
+                    <h3 class="text-sm sm:text-base font-bold text-[#4A4052] group-hover:text-[#8064A2] transition-colors">
+                        成長相簿
+                    </h3>
+                    <p class="text-[11px] text-[#81758A] mt-0.5 font-medium leading-tight line-clamp-1">
+                        收藏重要照片與回憶
+                    </p>
+                </div>
+            </a>
+
+            <!-- 功能 3: 📊 成長分析 -->
+            <a href="/history-review/baby-growth/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}" class="history-card-hover block bg-white rounded-3xl p-4 sm:p-5 border border-[#E8E0EF] shadow-2xs cursor-pointer group flex flex-col justify-between min-h-[140px]">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] group-hover:scale-110 transition-transform">
+                        <span class="text-xl">📊</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[#81758A] group-hover:text-[#8064A2] text-sm group-hover:translate-x-0.5 transition-all">arrow_forward_ios</span>
+                </div>
+                <div class="mt-3">
+                    <h3 class="text-sm sm:text-base font-bold text-[#4A4052] group-hover:text-[#8064A2] transition-colors">
+                        成長分析
+                    </h3>
+                    <p class="text-[11px] text-[#81758A] mt-0.5 font-medium leading-tight line-clamp-1">
+                        查看過去的成長變化
+                    </p>
+                </div>
+            </a>
+
+            <!-- 功能 4: ⭐ 重要時刻 -->
+            <a href="/history-review/ai-growth-journey/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}" class="history-card-hover block bg-white rounded-3xl p-4 sm:p-5 border border-[#E8E0EF] shadow-2xs cursor-pointer group flex flex-col justify-between min-h-[140px]">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] group-hover:scale-110 transition-transform">
+                        <span class="text-xl">⭐</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[#81758A] group-hover:text-[#8064A2] text-sm group-hover:translate-x-0.5 transition-all">arrow_forward_ios</span>
+                </div>
+                <div class="mt-3">
+                    <h3 class="text-sm sm:text-base font-bold text-[#4A4052] group-hover:text-[#8064A2] transition-colors">
+                        重要時刻
+                    </h3>
+                    <p class="text-[11px] text-[#81758A] mt-0.5 font-medium leading-tight line-clamp-1">
+                        收藏值得記住的時刻
+                    </p>
+                </div>
+            </a>
+
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 七、第三個區塊：我的孕期故事 (Vertical Timeline) -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-3xl p-5 sm:p-6 mb-8 border border-[#E8E0EF] shadow-[0_4px_20px_rgba(128,100,162,0.05)]">
+        <div class="mb-6">
+            <h2 class="text-lg sm:text-xl font-bold text-[#4A4052] font-['Plus_Jakarta_Sans']">
+                我的孕期故事
+            </h2>
+            <p class="text-xs text-[#81758A] font-medium font-['Be_Vietnam_Pro'] mt-0.5">
+                「每一個階段，都值得被記住」
+            </p>
+        </div>
+
+        <div class="relative pl-6 space-y-6">
+            <!-- Timeline 垂直連接線 -->
+            <div class="history-timeline-line"></div>
+
+            {% for node in timeline_nodes %}
+            <div class="relative pl-2 group">
+                <!-- 節點圓點 (目前節點帶有呼吸 Glow) -->
+                <div class="absolute -left-[29px] top-1 {% if node.is_current %}history-timeline-node-active{% else %}history-timeline-node{% endif %}"></div>
+
+                <div class="bg-[#FAF8FC] rounded-2xl p-4 border border-[#E8E0EF]/80 hover:border-[#A98BC7]/50 transition-colors">
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-extrabold text-[#8064A2] bg-[#EDE5F5] px-2 py-0.5 rounded-md font-['Plus_Jakarta_Sans']">
+                                {{ node.week_label }}
+                            </span>
+                            <h3 class="text-sm font-bold text-[#4A4052]">
+                                {{ node.title }}
+                            </h3>
+                        </div>
+                        <span class="text-[10px] font-medium text-[#81758A]">
+                            {{ node.date }}
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-[#81758A] leading-relaxed font-['Be_Vietnam_Pro']">
+                        {{ node.description }}
+                    </p>
+
+                    <div class="mt-2.5 flex items-center justify-between text-[10px] text-[#81758A] border-t border-[#E8E0EF]/60 pt-2">
+                        <span class="font-bold text-[#8064A2]">{{ node.type_label }}</span>
+                        {% if node.is_current %}
+                        <span class="text-[10px] font-bold text-[#8064A2] flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#8064A2]"></span>
+                            目前所在階段
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 八、重要時刻 (Milestone Highlights) -->
+    <!-- ========================================== -->
+    <section class="mb-8">
+        <h2 class="text-base sm:text-lg font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-[#A98BC7] rounded-full"></span>
+            重要時刻
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {% for moment in important_moments %}
+            <div class="bg-white rounded-2xl p-4 border border-[#E8E0EF] shadow-2xs hover:border-[#A98BC7]/50 transition-colors flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] shrink-0 mt-0.5">
+                    <span class="material-symbols-outlined text-lg">{{ moment.icon }}</span>
+                </div>
+                <div>
+                    <h3 class="text-xs sm:text-sm font-bold text-[#4A4052]">
+                        {{ moment.title }}
+                    </h3>
+                    <p class="text-[10px] font-bold text-[#8064A2] mt-0.5">
+                        {{ moment.subtitle }}
+                    </p>
+                    <p class="text-[11px] text-[#81758A] mt-1 leading-relaxed">
+                        {{ moment.note }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 九、成長分析預覽 (Growth Trend Preview) -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-3xl p-5 sm:p-6 mb-8 border border-[#E8E0EF] shadow-[0_4px_20px_rgba(128,100,162,0.05)]">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-base sm:text-lg font-bold text-[#4A4052] font-['Plus_Jakarta_Sans']">
+                    寶寶成長趨勢
+                </h2>
+                <p class="text-xs text-[#81758A] font-medium font-['Be_Vietnam_Pro'] mt-0.5">
+                    最近幾週的紀錄
+                </p>
+            </div>
+            <a href="/babygrowthmap/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}" class="text-xs font-bold text-[#8064A2] hover:text-[#4A4052] flex items-center gap-0.5 transition-colors">
+                <span>查看完整分析</span>
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
+        </div>
+
+        <!-- 成長長條圖 / 趨勢視覺化 (使用薰衣草紫) -->
+        <div class="bg-[#FAF8FC] p-4 rounded-2xl border border-[#E8E0EF]/80">
+            <div class="h-32 flex items-end justify-between gap-2 pt-4 px-2">
+                {% for pt in trend_chart_data %}
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                    <span class="text-[10px] font-bold text-[#8064A2] opacity-80 group-hover:opacity-100 transition-opacity">
+                        {{ pt.val }}
+                    </span>
+                    <div class="w-full max-w-[28px] bg-[#EDE5F5] rounded-t-xl overflow-hidden flex items-end h-full">
+                        <div class="w-full bg-gradient-to-t from-[#A98BC7] to-[#8064A2] rounded-t-xl transition-all duration-500 group-hover:brightness-110" style="height: {{ pt.pct }}%;"></div>
+                    </div>
+                    <span class="text-[10px] font-bold text-[#81758A] mt-1">
+                        {{ pt.week }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="text-[11px] text-[#81758A] text-center font-medium mt-3 pt-2 border-t border-[#E8E0EF]">
+                🌱 胎兒發育平穩且符合標準生長曲線
+            </p>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 十、最近紀錄 (Recent Records) -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E0EF] shadow-[0_4px_20px_rgba(128,100,162,0.05)]">
+        <h2 class="text-base sm:text-lg font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] mb-4 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-[#A98BC7] rounded-full"></span>
+            最近紀錄
+        </h2>
+
+        <div class="divide-y divide-[#E8E0EF]/70">
+            {% for item in recent_records %}
+            <a href="{{ item.url }}{% if active_selection_query %}?{{ active_selection_query }}{% endif %}" class="py-3 px-2 flex items-center justify-between hover:bg-[#FAF8FC] rounded-xl transition-colors cursor-pointer group">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-9 rounded-xl bg-[#EDE5F5] flex items-center justify-center text-xs font-bold text-[#8064A2] font-['Plus_Jakarta_Sans']">
+                        {{ item.date }}
+                    </div>
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-bold text-[#4A4052] group-hover:text-[#8064A2] transition-colors">
+                            {{ item.title }}
+                        </h3>
+                        <span class="text-[10px] font-semibold text-[#81758A]">
+                            {{ item.type_label }}
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 text-[#81758A] group-hover:text-[#8064A2] group-hover:translate-x-1 transition-all">
+                    <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+</main>
+{% endblock %}
