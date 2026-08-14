@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 
 from core.models import BabyInformation, BabyRecord, FamilyMember, PregnancyCase, PregnancyRecord
-from core import join_requests_manager
+from views import join_request
 from .pregnancyrecords import records_for_case
 from views.pregnancycase import (
     get_lmp_date,
@@ -139,7 +139,7 @@ def userprofile(request):
         is_case_owner = bool(case and case.user_id == current_user.user_id)
         if case.user_id == current_user.user_id:
             can_manage_helpers = True
-            pending_count = len(join_requests_manager.get_pending_requests(case.pregnancycase_id))
+            pending_count = len(join_request.get_pending_requests(case.pregnancycase_id))
         else:
             membership = FamilyMember.objects.filter(pregnancycase=case, user=current_user).first()
             can_manage_helpers = baby_utils.has_permission(membership, 'helper_list', 'view')
@@ -182,10 +182,10 @@ def join_family(request):
                 ).first()
                 if membership:
                     join_success = '您已經是此胎數的協助者了'
-                elif join_requests_manager.has_pending_request(case.pregnancycase_id, current_user.user_id):
+                elif join_request.has_pending_request(case.pregnancycase_id, current_user.user_id):
                     join_success = '您已送出加入申請，請等待養育者審核同意。'
                 else:
-                    join_requests_manager.add_request(case.pregnancycase_id, current_user.user_id)
+                    join_request.add_request(case.pregnancycase_id, current_user.user_id)
                     join_success = '已成功送出加入申請，請等待養育者審核同意！'
 
     latest_weight = _latest_weight_for_selection(request, current_user)
@@ -203,7 +203,7 @@ def join_family(request):
         )
         if active_case.user_id == current_user.user_id:
             can_manage_helpers = True
-            pending_count = len(join_requests_manager.get_pending_requests(active_case.pregnancycase_id))
+            pending_count = len(join_request.get_pending_requests(active_case.pregnancycase_id))
         else:
             active_membership = FamilyMember.objects.filter(pregnancycase=active_case, user=current_user).first()
             can_manage_helpers = baby_utils.has_permission(active_membership, 'helper_list', 'view')

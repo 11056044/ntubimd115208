@@ -1,2 +1,18 @@
-myenv/ 
-"django/core/join_requests.json" 
+myenv/
+
+# 執行期資料，不同環境會不同，不應進版本控制
+django/core/join_requests.json
+
+# Python 快取
+__pycache__/
+*.py[cod]
+
+# 環境設定
+.env
+*.env
+
+# Django media 上傳檔案
+media/
+
+# 暫存腳本
+migrate_join_requests.py

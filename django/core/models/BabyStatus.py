@@ -13,6 +13,6 @@ class BabyStatus(models.Model):
         managed = True
 
     def __str__(self):
-        return self.babystatus_id
+        return str(self.babystatus_id)
 
 

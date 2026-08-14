@@ -15,6 +15,30 @@ def parse_float(value):
     try: return float(value)
     except (TypeError, ValueError): return None
 
+# ── 出生體徵合理範圍（單位：體重 kg，其餘 cm）──
+BIRTH_VITAL_RANGES = {
+    'baby_weight':           (0.3,  6.0,  '出生體重（kg）合理範圍為 0.3 ~ 6.0 kg'),
+    'baby_height':           (25.0, 65.0, '出生身長（cm）合理範圍為 25 ~ 65 cm'),
+    'babyheadcircumference': (25.0, 45.0, '出生頭圍（cm）合理範圍為 25 ~ 45 cm'),
+    'chestcircumference':    (20.0, 42.0, '出生胸圍（cm）合理範圍為 20 ~ 42 cm'),
+}
+
+def validate_birth_vitals(weight_kg, height_cm, head_cm, chest_cm):
+    """驗證出生體徵數値是否在合理範圍內。回傳 None 代表合法；否則回傳錯誤訊息。"""
+    pairs = [
+        (weight_kg, 'baby_weight'),
+        (height_cm, 'baby_height'),
+        (head_cm,   'babyheadcircumference'),
+        (chest_cm,  'chestcircumference'),
+    ]
+    for value, key in pairs:
+        if value is None:
+            continue
+        lo, hi, msg = BIRTH_VITAL_RANGES[key]
+        if not (lo <= value <= hi):
+            return msg
+    return None
+
 def get_birth_week(baby):
     #計算出生週數、進行合理性檢查：
     if not baby or not baby.birthdaytime or not baby.pregnancycase or not baby.pregnancycase.menstruation:
@@ -31,8 +55,9 @@ def get_birth_week(baby):
     delta = birth_date - lmp_date
     
     # 防禦二：出生日不可小於或等於 LMP。
-    # 醫學極限防線：懷孕小於 14 週（98天）出生無法存活，通常為早期流產，若作為出生日登記必為亂填。
-    if delta.days < 98:
+    # 醫學下限：22週（154天）是目前公認的胎兒體外存活最低週數；
+    # 低於此週數在臨床上屬死產或流產，不會有活產體徵紀錄，視為亂填。
+    if delta.days < 154:
         return None
 
     weeks = delta.days // 7
@@ -57,8 +82,15 @@ def calculate_age_in_months(birthdaytime, record_date):
 
     birth_date, rec_date = _to_date(birthdaytime), _to_date(record_date)
     if birth_date is None or rec_date is None: return None
-    delta = rec_date - birth_date
-    return 0 if delta.days < 0 else int(delta.days / 30.4375)
+    if rec_date < birth_date: return 0
+    years = rec_date.year - birth_date.year
+    months = rec_date.month - birth_date.month
+    if rec_date.day < birth_date.day:
+        months -= 1
+    if months < 0:
+        years -= 1
+        months += 12
+    return years * 12 + months
 
 def get_relevant_timecourses(age_in_months):
     """根據月齡推薦發展指標區間時間軸代碼"""

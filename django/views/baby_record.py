@@ -8,6 +8,31 @@ from views import baby_utils
 
 MONTH_ABBR = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
+# ── 成長紀錄體徵合理範圍（0~3歲，體重 kg，其餘 cm）──
+# 身高下限 25cm：對齊出生時的下限，確保極早產兒（22~24週）出生後第一筆紀錄不被擋住
+RECORD_VITAL_RANGES = {
+    'height':             (25.0,  130.0, '身高（cm）合理範圍為 25 ~ 130 cm'),
+    'weight':             (0.3,   30.0,  '體重（kg）合理範圍為 0.3 ~ 30 kg'),
+    'headcircumference':  (25.0,  60.0,  '頭圍（cm）合理範圍為 25 ~ 60 cm'),
+    'chestcircumference': (20.0,  60.0,  '胸圍（cm）合理範圍為 20 ~ 60 cm'),
+}
+
+def _validate_record_vitals(height, weight, head, chest):
+    """驗證成長紀錄體徵數值是否在合理範圍內。回傳 None 代表合法；否則回傳錯誤訊息。"""
+    pairs = [
+        (height, 'height'),
+        (weight, 'weight'),
+        (head,   'headcircumference'),
+        (chest,  'chestcircumference'),
+    ]
+    for value, key in pairs:
+        if value is None:
+            continue
+        lo, hi, msg = RECORD_VITAL_RANGES[key]
+        if not (lo <= value <= hi):
+            return msg
+    return None
+
 from core.models import (
     BabyInformation,
     BabyRecord,
@@ -102,7 +127,14 @@ def add_baby_record(request):
                 'form_data': request.POST,
                 'today_iso': today_iso,
             })
-        #未出生不能紀錄
+        #未出生不能紀錄（birthdaytime=None 表示出生日尚未填寫）
+        if not active_baby.birthdaytime:
+            return render(request, 'baby/add_babyrecord.html', {
+                'baby':      active_baby,
+                'error':     '尚未填寫出生日期，無法新增成長紀錄',
+                'form_data': request.POST,
+                'today_iso': today_iso,
+            })
         if active_baby.birthdaytime and record_date_post < active_baby.birthdaytime.date():
             return render(request, 'baby/add_babyrecord.html', {
                 'baby':      active_baby,
@@ -116,14 +148,28 @@ def add_baby_record(request):
         record_text    = (request.POST.get('record', '') or '').strip()
         photo_url      = baby_utils.save_uploaded_image(request.FILES.get('photo'))
 
+        # ── 體徵範圍驗證 ──
+        h  = baby_utils.parse_float(request.POST.get('height'))
+        w  = baby_utils.parse_float(request.POST.get('weight'))
+        hc = baby_utils.parse_float(request.POST.get('headcircumference'))
+        cc = baby_utils.parse_float(request.POST.get('chestcircumference'))
+        vital_error = _validate_record_vitals(h, w, hc, cc)
+        if vital_error:
+            return render(request, 'baby/add_babyrecord.html', {
+                'baby':      active_baby,
+                'error':     vital_error,
+                'form_data': request.POST,
+                'today_iso': today_iso,
+            })
+
         baby_record = BabyRecord.objects.create(
             baby=active_baby,
             date=record_date_post,
             record=record_text,
-            weight=baby_utils.parse_float(request.POST.get('weight')),
-            height=baby_utils.parse_float(request.POST.get('height')),
-            headcircumference=baby_utils.parse_float(request.POST.get('headcircumference')),
-            chestcircumference=baby_utils.parse_float(request.POST.get('chestcircumference')),
+            weight=w,
+            height=h,
+            headcircumference=hc,
+            chestcircumference=cc,
             photo=photo_url,
         )
 
@@ -222,12 +268,63 @@ def edit_baby_record(request, babyrecord_id):
 
         milestones_str = request.POST.get('milestones', '')
 
-        record.date               = date_str
+        # ── 日期後端驗證（與 add 一致） ──
+        try:
+            record_date_edit = datetime.date.fromisoformat(date_str)
+        except (ValueError, TypeError):
+            return render(request, 'baby/add_babyrecord.html', {
+                'is_edit': True, 'record': record, 'baby': baby,
+                'baby_list': _get_accessible_babies(user),
+                'all_milestones': _get_milestones_for_edit(baby, record),
+                'error': '日期格式不正確',
+                'form_data': request.POST,
+                'selected_milestones': request.POST.get('milestones', ''),
+                'today_iso': datetime.date.today().isoformat(),
+            })
+        if record_date_edit > datetime.date.today():
+            return render(request, 'baby/add_babyrecord.html', {
+                'is_edit': True, 'record': record, 'baby': baby,
+                'baby_list': _get_accessible_babies(user),
+                'all_milestones': _get_milestones_for_edit(baby, record),
+                'error': '無法修改為未來日期的紀錄',
+                'form_data': request.POST,
+                'selected_milestones': request.POST.get('milestones', ''),
+                'today_iso': datetime.date.today().isoformat(),
+            })
+        if baby.birthdaytime and record_date_edit < baby.birthdaytime.date():
+            return render(request, 'baby/add_babyrecord.html', {
+                'is_edit': True, 'record': record, 'baby': baby,
+                'baby_list': _get_accessible_babies(user),
+                'all_milestones': _get_milestones_for_edit(baby, record),
+                'error': '紀錄日期不可早於寶寶出生日',
+                'form_data': request.POST,
+                'selected_milestones': request.POST.get('milestones', ''),
+                'today_iso': datetime.date.today().isoformat(),
+            })
+
+        # ── 體徵範圍驗證 ──
+        h  = baby_utils.parse_float(request.POST.get('height'))
+        w  = baby_utils.parse_float(request.POST.get('weight'))
+        hc = baby_utils.parse_float(request.POST.get('headcircumference'))
+        cc = baby_utils.parse_float(request.POST.get('chestcircumference'))
+        vital_error = _validate_record_vitals(h, w, hc, cc)
+        if vital_error:
+            return render(request, 'baby/add_babyrecord.html', {
+                'is_edit': True, 'record': record, 'baby': baby,
+                'baby_list': _get_accessible_babies(user),
+                'all_milestones': _get_milestones_for_edit(baby, record),
+                'error': vital_error,
+                'form_data': request.POST,
+                'selected_milestones': request.POST.get('milestones', ''),
+                'today_iso': datetime.date.today().isoformat(),
+            })
+
+        record.date               = record_date_edit
         record.record             = (request.POST.get('record', '') or '').strip()
-        record.weight             = baby_utils.parse_float(request.POST.get('weight'))
-        record.height             = baby_utils.parse_float(request.POST.get('height'))
-        record.headcircumference  = baby_utils.parse_float(request.POST.get('headcircumference'))
-        record.chestcircumference = baby_utils.parse_float(request.POST.get('chestcircumference'))
+        record.weight             = w
+        record.height             = h
+        record.headcircumference  = hc
+        record.chestcircumference = cc
 
         # 只有新上傳照片才覆蓋舊照片
         photo_url = baby_utils.save_uploaded_image(request.FILES.get('photo'))

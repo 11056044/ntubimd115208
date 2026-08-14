@@ -27,7 +27,7 @@ def validate_birth_datetime(lmp_date, birth_dt, on_date=None):
     """
     驗證出生時間是否符合生理合理範圍：
       - 不可為未來日期
-      - 不可早於 LMP 後 14 週（98 天）
+      - 不可早於 LMP 後 22 週（154 天）── 醫學公認最低體外存活週數
       - 不可晚於 LMP 後 43 週（301 天）
     回傳 None 代表合法；否則回傳可直接顯示給使用者的錯誤訊息字串。
     birth_dt 為 None（尚未出生）一律視為合法。
@@ -43,8 +43,8 @@ def validate_birth_datetime(lmp_date, birth_dt, on_date=None):
 
     if lmp_date:
         delta_days = (birth_date - lmp_date).days
-        if delta_days < 98:  # 14週
-            return '資料異常：出生日期不可早於懷孕中期(14週)，請檢查最後一次月經或出生日設定'
+        if delta_days < 154:  # 22週：醫學公認最低存活週數
+            return '資料異常：出生日期不可早於懷孕 22 週，請檢查最後一次月經或出生日設定'
         if delta_days > 301:  # 43週
             return '資料異常：懷孕週數超過 43 週，不符合正常生理上限'
     return None
@@ -720,13 +720,29 @@ def add_pregnancy_case(request):
                 })
 
             name = (request.POST.get(f'baby_name_{num}') or '').strip() or f'嬰幼兒 {num}'
+            w  = _parse_float(request.POST.get(f'baby_weight_{num}') or request.POST.get('baby_weight'))
+            h  = _parse_float(request.POST.get(f'baby_height_{num}') or request.POST.get('baby_height'))
+            hc = _parse_float(request.POST.get(f'baby_head_{num}') or request.POST.get('baby_head'))
+            cc = _parse_float(request.POST.get(f'baby_chest_{num}') or request.POST.get('baby_chest'))
+
+            # ── 體徵範圍驗證（lazy import 避免與 baby_utils 循環相依） ──
+            from views.baby_utils import validate_birth_vitals
+            vital_error = validate_birth_vitals(w, h, hc, cc)
+            if vital_error:
+                generated_code = _generate_unique_code()
+                return render(request, 'pregnancycase/add_pregnancy_case.html', {
+                    'generated_code': generated_code,
+                    'error': f'第 {num} 位嬰幼兒體徵：{vital_error}',
+                    'form_data': request.POST,
+                })
+
             babies_payload.append({
                 'name': name,
                 'birthdaytime': birthdaytime,
-                'baby_height': _parse_float(request.POST.get(f'baby_height_{num}') or request.POST.get('baby_height')),
-                'baby_weight': _parse_float(request.POST.get(f'baby_weight_{num}') or request.POST.get('baby_weight')),
-                'babyheadcircumference': _parse_float(request.POST.get(f'baby_head_{num}') or request.POST.get('baby_head')),
-                'chestcircumference': _parse_float(request.POST.get(f'baby_chest_{num}') or request.POST.get('baby_chest')),
+                'baby_height': h,
+                'baby_weight': w,
+                'babyheadcircumference': hc,
+                'chestcircumference': cc,
                 'production_method': request.POST.get(f'production_method_{num}') or request.POST.get('production_method'),
             })
 

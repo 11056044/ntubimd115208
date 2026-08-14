@@ -42,7 +42,7 @@
                     </div>
                     <div class="flex-1">
                         <p class="text-sm font-bold mb-1">紀錄日期</p>
-                        <input name="date" class="text-xs text-on-surface-variant bg-transparent border-none p-0 w-full cursor-pointer" type="date" value="{{ record.date|date:'Y-m-d' }}" />
+                        <input name="date" class="text-xs text-on-surface-variant bg-transparent border-none p-0 w-full cursor-pointer" type="date" value="{{ record.date|date:'Y-m-d' }}" max="{{ today_iso }}" min="{{ record.baby.birthdaytime|date:'Y-m-d' }}" />
                     </div>
                 </div>
             </div>
@@ -54,19 +54,19 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">身高 (CM)</span>
-                        <input name="height" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.1" value="{{ record.height|default:'' }}" />
+                        <input name="height" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.1" min="25" max="130" value="{{ record.height|default:'' }}" />
                     </div>
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">體重 (KG)</span>
-                        <input name="weight" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.1" value="{{ record.weight|default:'' }}" />
+                        <input name="weight" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.01" min="0.3" max="30" value="{{ record.weight|default:'' }}" />
                     </div>
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">頭圍 (CM)</span>
-                        <input name="headcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.1" value="{{ record.headcircumference|default:'' }}" />
+                        <input name="headcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.1" min="25" max="60" value="{{ record.headcircumference|default:'' }}" />
                     </div>
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">胸圍 (CM)</span>
-                        <input name="chestcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.1" value="{{ record.chestcircumference|default:'' }}" />
+                        <input name="chestcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0" type="number" step="0.1" min="20" max="60" value="{{ record.chestcircumference|default:'' }}" />
                     </div>
                 </div>
             </div>

@@ -20,4 +20,4 @@ class BabyRecord(models.Model):
         managed = True
 
     def __str__(self):
-        return self.date
+        return str(self.date)

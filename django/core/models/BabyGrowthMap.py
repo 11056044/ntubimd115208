@@ -11,4 +11,4 @@ class BabyGrowthMap(models.Model):
         managed = True
 
     def __str__(self):
-        return self.timecourse
+        return str(self.timecourse)

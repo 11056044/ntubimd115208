@@ -61,15 +61,15 @@
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生體重</label>
                         <div class="relative">
-                            <input type="number" name="birth_weight" step="0.1" placeholder="如 3200" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">g</span>
+                            <input type="number" name="birth_weight" step="0.01" min="0.3" max="6.0" placeholder="如 3.2" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">kg</span>
                         </div>
                     </div>
 
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生身長</label>
                         <div class="relative">
-                            <input type="number" name="birth_height" step="0.1" placeholder="如 50.5" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
+                            <input type="number" name="birth_height" step="0.1" min="25" max="65" placeholder="如 50.5" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">cm</span>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生頭圍</label>
                         <div class="relative">
-                            <input type="number" name="birth_head" step="0.1" placeholder="如 34" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
+                            <input type="number" name="birth_head" step="0.1" min="25" max="45" placeholder="如 34" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">cm</span>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生胸圍</label>
                         <div class="relative">
-                            <input type="number" name="birth_chest" step="0.1" placeholder="如 32" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
+                            <input type="number" name="birth_chest" step="0.1" min="20" max="42" placeholder="如 32" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-secondary-container transition-all text-sm outline-none font-medium" />
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">cm</span>
                         </div>
                     </div>
