@@ -58,13 +58,6 @@ urlpatterns = [
         name='logout'
     ),
 
-    path(
-        'demo_login/',
-        login.demo_login,
-        name='demo_login'
-    ),
-
-
     # ======================
     # 育兒提醒
     # ======================
