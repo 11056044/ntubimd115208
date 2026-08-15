@@ -1,0 +1,98 @@
+/* CoLoGrowth History Review Custom Styles */
+
+:root {
+    --hl-primary: #A98BC7;
+    --hl-dark: #8064A2;
+    --hl-light: #EDE5F5;
+    --hl-bg: #FAF8FC;
+    --hl-card: #FFFFFF;
+    --hl-text-main: #4A4052;
+    --hl-text-sub: #81758A;
+    --hl-border: #E8E0EF;
+}
+
+.bg-history-page {
+    background-color: #FAF8FC;
+}
+
+.text-history-main {
+    color: #4A4052;
+}
+
+.text-history-sub {
+    color: #81758A;
+}
+
+.text-history-primary {
+    color: #A98BC7;
+}
+
+.text-history-dark {
+    color: #8064A2;
+}
+
+.bg-history-primary {
+    background-color: #A98BC7;
+}
+
+.bg-history-light {
+    background-color: #EDE5F5;
+}
+
+.border-history {
+    border-color: #E8E0EF;
+}
+
+/* Timeline Components */
+.history-timeline-line {
+    position: absolute;
+    left: 15px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background-color: #E8E0EF;
+}
+
+.history-timeline-node {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background-color: #A98BC7;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 0 2px #E8E0EF;
+    z-index: 10;
+}
+
+.history-timeline-node-active {
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background-color: #8064A2;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 0 0 4px #EDE5F5, 0 0 14px rgba(169, 139, 199, 0.5);
+    z-index: 10;
+    animation: history-pulse 3s infinite ease-in-out;
+}
+
+@keyframes history-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 4px #EDE5F5, 0 0 14px rgba(169, 139, 199, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 6px #EDE5F5, 0 0 20px rgba(169, 139, 199, 0.7);
+    }
+}
+
+/* Card hover animation */
+.history-card-hover {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.history-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(128, 100, 162, 0.09);
+}
+
+.history-card-hover:active {
+    transform: scale(0.985);
+}

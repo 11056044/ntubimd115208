@@ -1,339 +1,190 @@
-<!DOCTYPE html><html class="light" lang="zh-TW"><head>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>CoLoGrowth - 階段總結</title>
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<!-- Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "tertiary-container": "#f8bbd0",
-                        "secondary-container": "#b2e4fb",
-                        "inverse-primary": "#d6beff",
-                        "tertiary": "#7d4d5f",
-                        "on-surface-variant": "#5b5c5a",
-                        "error-dim": "#a70138",
-                        "surface-container": "#e8e8e5",
-                        "surface-container-lowest": "#ffffff",
-                        "on-secondary": "#e4f5ff",
-                        "on-primary-container": "#4b386e",
-                        "surface-tint": "#65518a",
-                        "secondary-dim": "#215669",
-                        "primary-fixed-dim": "#c8b1f0",
-                        "surface-container-highest": "#ddddd9",
-                        "tertiary-dim": "#6f4253",
-                        "on-tertiary-fixed-variant": "#6c3f51",
-                        "primary-container": "#d6beff",
-                        "surface-dim": "#d4d5d1",
-                        "secondary-fixed": "#b2e4fb",
-                        "on-secondary-fixed": "#014154",
-                        "outline": "#767775",
-                        "on-tertiary": "#ffeff2",
-                        "surface-variant": "#ddddd9",
-                        "on-background": "#2e2f2d",
-                        "primary": "#65518a",
-                        "primary-dim": "#59467d",
-                        "primary-fixed": "#d6beff",
-                        "on-secondary-container": "#1f5467",
-                        "surface": "#f7f6f3",
-                        "background": "#f7f6f3",
-                        "surface-bright": "#f7f6f3",
-                        "on-error-container": "#510017",
-                        "error-container": "#f74b6d",
-                        "on-surface": "#2e2f2d",
-                        "inverse-on-surface": "#9d9d9a",
-                        "on-tertiary-fixed": "#4b2334",
-                        "on-error": "#ffefef",
-                        "on-secondary-fixed-variant": "#2b5e71",
-                        "on-tertiary-container": "#623648",
-                        "on-primary-fixed": "#362459",
-                        "outline-variant": "#adadab",
-                        "surface-container-high": "#e3e3df",
-                        "inverse-surface": "#0d0f0d",
-                        "surface-container-low": "#f1f1ee",
-                        "error": "#b41340",
-                        "secondary": "#2f6275",
-                        "tertiary-fixed": "#f8bbd0",
-                        "secondary-fixed-dim": "#a4d6ed",
-                        "on-primary": "#f8efff",
-                        "tertiary-fixed-dim": "#e9aec3",
-                        "on-primary-fixed-variant": "#544178"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "1rem",
-                        "lg": "2rem",
-                        "xl": "3rem",
-                        "full": "9999px"
-                    },
-                    "fontFamily": {
-                        "headline": ["Plus Jakarta Sans", "Noto Sans TC"],
-                        "display": ["Plus Jakarta Sans", "Noto Sans TC"],
-                        "body": ["Be Vietnam Pro", "Noto Sans TC"],
-                        "label": ["Be Vietnam Pro", "Noto Sans TC"]
-                    }
-                }
-            }
-        }
-    </script>
-<style>
-        body { font-family: 'Be Vietnam Pro', 'Noto Sans TC', sans-serif; }
-        .glass-effect { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .shadow-cloud { box-shadow: 0 20px 40px rgba(46, 47, 45, 0.06); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .bento-card { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .bento-card:hover { transform: scale(1.02); }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-    </style>
-</head>
-<body class="bg-surface text-on-surface min-h-screen pb-32 overflow-x-hidden selection:bg-primary-container">
-<!-- Top Navigation Bar (Shared Component - Simplified Mapping) -->
-<header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-<div class="flex items-center space-x-4">
-<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors">
-<span class="material-symbols-outlined text-on-surface">arrow_back</span>
-</button>
-<h1 class="text-xl font-bold tracking-wide text-primary">階段總結</h1>
-</div>
-<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container/20 text-primary">
-<span class="material-symbols-outlined">share</span>
-</button>
-</header>
-<main class="max-w-md mx-auto px-6 pt-4 space-y-8">
-<!-- Header Section -->
-<section class="text-center space-y-3 pt-6 relative">
-<div class="absolute -top-10 -left-10 w-40 h-40 bg-primary-container/30 blur-3xl rounded-full opacity-50"></div>
-<div class="absolute -top-10 -right-10 w-40 h-40 bg-secondary-container/30 blur-3xl rounded-full opacity-50"></div>
-<h2 class="text-4xl font-extrabold tracking-tight font-display text-on-surface">階段總結</h2>
-<p class="text-on-surface-variant font-medium text-lg leading-relaxed px-4">「一起回顧這段最美好的成長旅程」</p>
-</section>
-<!-- Stats Grid (Bento Style) -->
-<section class="grid grid-cols-2 gap-4">
-<!-- Stat 1 -->
-<div class="bento-card bg-primary-container/40 p-5 rounded-lg flex flex-col justify-between h-40 border border-primary-container/20">
-<div class="flex justify-between items-start">
-<div class="bg-white/60 p-2 rounded-full shadow-sm">
-<span class="material-symbols-outlined text-primary">calendar_month</span>
-</div>
-</div>
-<div>
-<p class="text-on-primary-container/70 text-sm font-semibold mb-1">陪伴天數</p>
-<p class="text-3xl font-black font-display text-on-primary-container">280 <span class="text-base font-normal">Days</span></p>
-</div>
-</div>
-<!-- Stat 2 -->
-<div class="bento-card bg-secondary-container/40 p-5 rounded-lg flex flex-col justify-between h-40 border border-secondary-container/20">
-<div class="flex justify-between items-start">
-<div class="bg-white/60 p-2 rounded-full shadow-sm">
-<span class="material-symbols-outlined text-secondary">photo_library</span>
-</div>
-</div>
-<div>
-<p class="text-on-secondary-container/70 text-sm font-semibold mb-1">超音波照片</p>
-<p class="text-3xl font-black font-display text-on-secondary-container">48 <span class="text-base font-normal">Photos</span></p>
-</div>
-</div>
-<!-- Stat 3 -->
-<div class="bento-card bg-tertiary-container/40 p-5 rounded-lg flex flex-col justify-between h-40 border border-tertiary-container/20">
-<div class="flex justify-between items-start">
-<div class="bg-white/60 p-2 rounded-full shadow-sm">
-<span class="material-symbols-outlined text-tertiary">star</span>
-</div>
-</div>
-<div>
-<p class="text-on-tertiary-container/70 text-sm font-semibold mb-1">成長里程碑</p>
-<p class="text-3xl font-black font-display text-on-tertiary-container">12 <span class="text-base font-normal">Tasks</span></p>
-</div>
-</div>
-<!-- Stat 4 -->
-<div class="bento-card bg-[#fefccf] p-5 rounded-lg flex flex-col justify-between h-40 border border-yellow-200/40">
-<div class="flex justify-between items-start">
-<div class="bg-white/60 p-2 rounded-full shadow-sm">
-<span class="material-symbols-outlined text-amber-700">psychology</span>
-</div>
-</div>
-<div>
-<p class="text-amber-900/60 text-sm font-semibold mb-1">Growth AI</p>
-<p class="text-3xl font-black font-display text-amber-900">35 <span class="text-base font-normal">Q&amp;As</span></p>
-</div>
-</div>
-</section>
-<!-- Data Visualization Section -->
-<section class="space-y-4">
-<h3 class="text-xl font-bold px-1 flex items-center text-on-surface">
-<span class="w-1.5 h-6 bg-primary rounded-full mr-3"></span>
-                數據回顧
-            </h3>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<!-- Weight Chart -->
-<div class="bg-surface-container-lowest p-6 rounded-lg shadow-cloud border border-outline-variant/10">
-<div class="flex items-center justify-between mb-6">
-<h4 class="font-bold text-on-surface">體重趨勢</h4>
-<span class="text-xs bg-primary-container/20 text-primary px-2 py-1 rounded-full">媽媽 / 寶寶</span>
-</div>
-<div class="h-32 flex items-end justify-between gap-1">
-<!-- Simulated Chart -->
-<div class="w-2 bg-primary/20 rounded-t-full h-[30%]"></div>
-<div class="w-2 bg-primary/30 rounded-t-full h-[45%]"></div>
-<div class="w-2 bg-primary/40 rounded-t-full h-[40%]"></div>
-<div class="w-2 bg-primary/50 rounded-t-full h-[60%]"></div>
-<div class="w-2 bg-primary/60 rounded-t-full h-[75%]"></div>
-<div class="w-2 bg-primary/70 rounded-t-full h-[70%]"></div>
-<div class="w-2 bg-primary/80 rounded-t-full h-[85%]"></div>
-<div class="w-2 bg-primary rounded-t-full h-[100%]"></div>
-</div>
-<p class="mt-4 text-xs text-on-surface-variant text-center">穩定的成長曲線</p>
-</div>
-<!-- Mood Donut -->
-<div class="bg-surface-container-lowest p-6 rounded-lg shadow-cloud border border-outline-variant/10">
-<h4 class="font-bold text-on-surface mb-6">心情分佈</h4>
-<div class="flex items-center justify-center relative h-32">
-<!-- Custom SVG Donut -->
-<svg class="w-24 h-24 transform -rotate-90">
-<circle cx="48" cy="48" fill="transparent" r="40" stroke="#f1f1ee" stroke-width="8"></circle>
-<circle cx="48" cy="48" fill="transparent" r="40" stroke="#65518a" stroke-dasharray="251" stroke-dashoffset="62" stroke-width="8"></circle>
-<circle cx="48" cy="48" fill="transparent" r="40" stroke="#b2e4fb" stroke-dasharray="251" stroke-dashoffset="180" stroke-width="8"></circle>
-</svg>
-<div class="absolute inset-0 flex flex-col items-center justify-center">
-<span class="text-sm font-bold">快樂</span>
-<span class="text-[10px] text-on-surface-variant">75%</span>
-</div>
-</div>
-<div class="mt-4 flex justify-around">
-<div class="flex items-center text-[10px]"><span class="w-2 h-2 rounded-full bg-primary mr-1"></span>快樂</div>
-<div class="flex items-center text-[10px]"><span class="w-2 h-2 rounded-full bg-secondary-container mr-1"></span>平靜</div>
-<div class="flex items-center text-[10px]"><span class="w-2 h-2 rounded-full bg-surface-container mr-1"></span>焦慮</div>
-</div>
-</div>
-</div>
-</section>
-<!-- Milestone Summary Cards -->
-<section class="space-y-6">
-<h3 class="text-xl font-bold px-1 flex items-center text-on-surface">
-<span class="w-1.5 h-6 bg-tertiary-container rounded-full mr-3"></span>
-                成長精華
-            </h3>
-<!-- Milestone Card 1 -->
-<div class="bg-surface-container-lowest rounded-lg overflow-hidden shadow-cloud border border-outline-variant/5">
-<div class="p-6">
-<div class="flex items-center justify-between mb-4">
-<span class="text-xs font-bold tracking-widest text-primary uppercase bg-primary-container/30 px-3 py-1 rounded-full">Phase One</span>
-<span class="material-symbols-outlined text-primary-dim">auto_awesome</span>
-</div>
-<h4 class="text-2xl font-black mb-3">孕期畢業報告</h4>
-<p class="text-on-surface-variant leading-relaxed">恭喜完成 40 週陪伴旅程！妳成功記錄了每一個胎動、每一次產檢，這是一份屬於妳與寶寶最珍貴的初見禮物。</p>
-</div>
-<div class="h-48 relative">
-<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest to-transparent z-10"></div>
-<img class="w-full h-full object-cover" data-alt="A soft, ethereal digital painting of a glowing pregnant silhouette surrounded by lavender and pale blue flowers, soft morning light filtering through high windows, peaceful and maternal atmosphere, high-end editorial illustration style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYJlE-LLtDdr5xLzlfjtN6xW9rgfD8RNadoyfkuhDWHNtUR3rpVh5tYTFlyB0sR-lPV0iZm2acbsG72580O4zHaCcj-xXdPGCgymXj5SDtu4v8uaQ6s_LWAc4DY4D5YWGWhQWGgwKkfIM2u6BUcP43rYBFs2ri_NUtleiCHFuAudYi9QLe1SNTtoV8AH1lCljqEC0wjr5XQo6CeUl6eDzUnRuLUY6bk_wgWm7HuPFNop_7qfsETW9xOA">
-</div>
-</div>
-<!-- Milestone Card 2 -->
-<div class="bg-surface-container-lowest rounded-lg p-6 shadow-cloud border border-outline-variant/5">
-<div class="flex items-start justify-between mb-6">
-<div>
-<h4 class="text-2xl font-black mb-1">周歲成長精華</h4>
-<p class="text-sm text-on-surface-variant">寶寶的第一年紀錄</p>
-</div>
-<div class="bg-tertiary-container/30 w-12 h-12 rounded-full flex items-center justify-center">
-<span class="material-symbols-outlined text-tertiary">child_care</span>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div class="p-4 bg-surface-container-low rounded-lg">
-<p class="text-xs text-on-surface-variant mb-2">身高成長曲線</p>
-<div class="h-10 flex items-end gap-1">
-<div class="flex-1 bg-tertiary h-[40%] rounded-sm opacity-30"></div>
-<div class="flex-1 bg-tertiary h-[60%] rounded-sm opacity-50"></div>
-<div class="flex-1 bg-tertiary h-[80%] rounded-sm opacity-70"></div>
-<div class="flex-1 bg-tertiary h-[100%] rounded-sm"></div>
-</div>
-</div>
-<div class="p-4 bg-surface-container-low rounded-lg flex flex-col justify-center">
-<p class="text-xs text-on-surface-variant mb-1">體重變化</p>
-<p class="text-lg font-bold text-tertiary">+7.2 kg</p>
-</div>
-</div>
-<div class="aspect-square w-full bg-surface-container-low rounded-lg border-2 border-dashed border-outline-variant/20 flex flex-col items-center justify-center overflow-hidden group hover:bg-surface-container transition-colors cursor-pointer">
-<div class="text-center p-8 group-hover:scale-105 transition-transform">
-<span class="material-symbols-outlined text-4xl text-outline-variant mb-3">add_a_photo</span>
-<p class="text-sm font-medium text-on-surface-variant">點擊上傳「第一個生日照片」</p>
-</div>
-<img class="hidden object-cover w-full h-full" data-alt="A heart-warming, high-key photograph of a one-year-old baby's first birthday cake smash, soft pastel decorations in the background, warm cream and lavender color palette, premium nursery aesthetic, soft bokeh." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzBabOxqKlkiUz98csW7h0imB9Rmeb0JyMkHoLC7IRrDbnOcTzRhIOjegA9gvB5Bm-by9paJVGpXAUa4g9RcaoPJbNzI6W6KKs5kQad2zMtzlyuYjEmzwmgekk8DJmW7i3j0YnoRU4iR5M1Y593WS3ozuTR2iPcNv2krEsbQXnnuaggG6YxOoP-K47NnS7URElYNXvnEP2-G5v5cTXvLtgWJ8qK74_t3vA_oQ0iCOJjwNF71Z4vLUEow">
-</div>
-</div>
-</section>
-<!-- Action Buttons -->
-<section class="flex flex-col gap-4 pt-4">
-<button class="w-full h-16 bg-gradient-to-r from-primary to-primary-dim text-white rounded-full font-bold text-lg shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-<span class="material-symbols-outlined">menu_book</span>
-                下載紀念冊
-            </button>
-<button class="w-full h-16 bg-surface-container-lowest text-on-surface border border-outline-variant/10 rounded-full font-bold text-lg shadow-sm hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-primary">ios_share</span>
-                分享成長回顧
-            </button>
-</section>
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}重要時刻 - 歷史回顧{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/history.css' %}">
+
+<main class="mx-auto px-4 sm:px-6 pt-5 pb-36 max-w-md md:max-w-3xl lg:max-w-4xl w-full transition-all duration-300">
+    
+    <!-- ========================================== -->
+    <!-- 共同 Header -->
+    <!-- ========================================== -->
+    <div class="flex items-center justify-between mb-4">
+        <button onclick="window.location.href='/history-review/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}'" class="flex items-center gap-1.5 text-xs font-bold text-[#8064A2] bg-[#EDE5F5] hover:bg-[#A98BC7]/20 px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer" type="button">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            <span>返回</span>
+        </button>
+        <span class="text-[11px] font-bold text-[#81758A] bg-white border border-[#E8E0EF] px-3 py-1 rounded-full shadow-2xs">
+            ⭐ 重要時刻
+        </span>
+    </div>
+
+    <header class="mb-5">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans'] tracking-tight">
+            重要時刻
+        </h1>
+        <p class="text-xs sm:text-sm font-medium text-[#81758A] font-['Be_Vietnam_Pro'] mt-1">
+            「收藏那些想一直記得的時刻」
+        </p>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- Hero 收藏卡片 -->
+    <!-- ========================================== -->
+    <section class="bg-white rounded-3xl p-5 sm:p-6 mb-6 border border-[#E8E0EF] shadow-[0_4px_20px_rgba(128,100,162,0.05)]">
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-extrabold text-[#8064A2] tracking-wider uppercase bg-[#EDE5F5] px-2.5 py-0.5 rounded-full">
+                    CHERISHED MOMENTS
+                </span>
+                <h2 class="text-lg sm:text-xl font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] mt-1.5 flex items-center gap-1.5">
+                    <span>⭐ 值得記住的每一刻</span>
+                </h2>
+                <p class="text-xs text-[#81758A] font-medium font-['Be_Vietnam_Pro'] mt-1">
+                    目前收藏 <strong class="text-[#8064A2] font-bold">{{ total_moments_count }}</strong> 個重要時刻
+                </p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] shadow-2xs">
+                <span class="text-2xl">⭐</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 重要時刻垂直排列 (Simplified Timeline) -->
+    <!-- ========================================== -->
+    {% if has_moments %}
+    <div class="relative pl-7 sm:pl-9 space-y-5 mb-8">
+        <!-- 垂直連接線 -->
+        <div class="history-timeline-line"></div>
+
+        {% for moment in important_moments %}
+        <div class="relative pl-2 group">
+            <!-- ⭐ 節點圖示 (淡紫色圓形背景) -->
+            <div class="absolute -left-[30px] sm:-left-[38px] top-3 w-6 h-6 rounded-full bg-[#EDE5F5] border-2 border-white shadow-2xs flex items-center justify-center text-xs text-[#8064A2] z-10 group-hover:scale-110 transition-transform">
+                ⭐
+            </div>
+
+            <!-- 卡片本體 -->
+            <div onclick="window.location.href='{{ moment.detail_url }}{% if active_selection_query %}?{{ active_selection_query }}{% endif %}'" class="history-card-hover bg-white rounded-3xl p-4 sm:p-5 border border-[#E8E0EF] shadow-2xs hover:border-[#A98BC7]/60 cursor-pointer transition-all flex items-center justify-between gap-3">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold text-[#8064A2] bg-[#EDE5F5] px-2.5 py-0.5 rounded-full font-['Plus_Jakarta_Sans']">
+                            {{ moment.week }}
+                        </span>
+                        <span class="text-[10px] text-[#81758A] font-medium">
+                            {{ moment.date }}
+                        </span>
+                    </div>
+
+                    <h3 class="text-sm sm:text-base font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] group-hover:text-[#8064A2] transition-colors mb-0.5">
+                        {{ moment.title }}
+                    </h3>
+
+                    <p class="text-xs text-[#81758A] leading-relaxed line-clamp-2 font-['Be_Vietnam_Pro']">
+                        {{ moment.notes }}
+                    </p>
+                </div>
+
+                <div class="w-8 h-8 rounded-full bg-[#FAF8FC] flex items-center justify-center text-[#81758A] group-hover:text-[#8064A2] group-hover:translate-x-1 transition-all shrink-0">
+                    <span class="material-symbols-outlined text-base">arrow_forward_ios</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16 px-6 bg-white rounded-3xl border border-[#E8E0EF] shadow-2xs mb-8">
+        <div class="w-16 h-16 rounded-full bg-[#EDE5F5] flex items-center justify-center text-3xl mx-auto mb-3 text-[#8064A2]">
+            ⭐
+        </div>
+        <h3 class="text-base font-bold text-[#4A4052] mb-1">還沒有收藏的時刻</h3>
+        <p class="text-xs text-[#81758A] mb-5 max-w-xs mx-auto">
+            把對你重要的回憶留下來吧，記錄第一次心跳、第一次胎動與每一個幸福瞬間！
+        </p>
+        <button onclick="openAddMomentModal()" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#8064A2] hover:bg-[#6c518d] px-5 py-2.5 rounded-full transition-colors shadow-xs cursor-pointer" type="button">
+            <span class="material-symbols-outlined text-sm">add</span>
+            <span>新增第一個重要時刻</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- 底部固定按鈕 / FAB -->
+    <!-- ========================================== -->
+    <div class="fixed bottom-20 right-6 sm:right-10 z-40">
+        <button onclick="openAddMomentModal()" class="flex items-center gap-2 bg-[#8064A2] hover:bg-[#6c518d] text-white px-4 py-3 rounded-full shadow-lg shadow-[#8064A2]/30 active:scale-95 transition-all text-xs font-bold cursor-pointer" type="button">
+            <span class="material-symbols-outlined text-base">add</span>
+            <span>新增重要時刻</span>
+        </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 新增重要時刻 Modal 表單 -->
+    <!-- ========================================== -->
+    <div id="add-moment-modal" class="fixed inset-0 z-[120] bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" onclick="closeAddMomentModal()">
+        <div class="relative max-w-md w-full bg-white rounded-3xl overflow-hidden shadow-2xl p-5 sm:p-6" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-[#4A4052] flex items-center gap-1.5">
+                    <span>⭐ 新增重要時刻</span>
+                </h3>
+                <button onclick="closeAddMomentModal()" class="w-8 h-8 rounded-full bg-[#FAF8FC] text-[#81758A] flex items-center justify-center hover:bg-[#EDE5F5] transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveMoment(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-[#4A4052] mb-1">標題 *</label>
+                    <input type="text" id="moment-title" required placeholder="例如：第一次感受到胎動" class="w-full px-3.5 py-2 rounded-xl bg-[#FAF8FC] border border-[#E8E0EF] text-xs text-[#4A4052] focus:outline-none focus:border-[#A98BC7]">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-[#4A4052] mb-1">日期 *</label>
+                        <input type="date" id="moment-date" required class="w-full px-3.5 py-2 rounded-xl bg-[#FAF8FC] border border-[#E8E0EF] text-xs text-[#4A4052] focus:outline-none focus:border-[#A98BC7]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#4A4052] mb-1">孕週 / 月齡</label>
+                        <input type="text" id="moment-week" placeholder="例如：第 20 週" class="w-full px-3.5 py-2 rounded-xl bg-[#FAF8FC] border border-[#E8E0EF] text-xs text-[#4A4052] focus:outline-none focus:border-[#A98BC7]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-[#4A4052] mb-1">備註紀錄</label>
+                    <textarea id="moment-notes" rows="3" placeholder="寫下當時的心情與想說的話..." class="w-full px-3.5 py-2 rounded-xl bg-[#FAF8FC] border border-[#E8E0EF] text-xs text-[#4A4052] focus:outline-none focus:border-[#A98BC7]"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-[#8064A2] hover:bg-[#6c518d] text-white rounded-xl font-bold text-xs shadow-xs transition-all active:scale-[0.98] cursor-pointer">
+                    加入重要時刻
+                </button>
+            </form>
+        </div>
+    </div>
+
 </main>
-<!-- Bottom Navigation Bar (Shared Component Execution) -->
-<nav class="fixed bottom-0 left-0 w-full z-50 bg-white dark:bg-stone-900 rounded-t-[3rem] pb-safe shadow-[0_-4px_24px_rgba(68,50,103,0.04)] flex justify-around items-center px-4 py-3">
-<!-- Tab: Home -->
-<div class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 p-2 hover:opacity-80 transition-opacity">
-<span class="material-symbols-outlined">home</span>
-<span class="font-['Plus_Jakarta_Sans','Noto_Sans_TC'] text-[11px] font-medium">首頁</span>
-</div>
-<!-- Tab: Records -->
-<div class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 p-2 hover:opacity-80 transition-opacity">
-<span class="material-symbols-outlined">pregnant_woman</span>
-<span class="font-['Plus_Jakarta_Sans','Noto_Sans_TC'] text-[11px] font-medium">記錄</span>
-</div>
-<!-- Tab: AI -->
-<div class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 p-2 hover:opacity-80 transition-opacity">
-<span class="material-symbols-outlined">child_care</span>
-<span class="font-['Plus_Jakarta_Sans','Noto_Sans_TC'] text-[11px] font-medium">AI</span>
-</div>
-<!-- Tab: Growth (ACTIVE) -->
-<div class="flex flex-col items-center justify-center bg-surface-container-low dark:bg-stone-800 text-primary dark:text-[#D1C4E9] rounded-full px-5 py-2 shadow-sm scale-90 transition-transform active:scale-100">
-<span class="material-symbols-outlined">menu_book</span>
-<span class="font-['Plus_Jakarta_Sans','Noto_Sans_TC'] text-[11px] font-bold">成長</span>
-</div>
-<!-- Tab: Profile -->
-<div class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 p-2 hover:opacity-80 transition-opacity">
-<span class="material-symbols-outlined">person</span>
-<span class="font-['Plus_Jakarta_Sans','Noto_Sans_TC'] text-[11px] font-medium">我的</span>
-</div>
-</nav>
+
 <script>
-        // Simple Micro-interaction for Stats
-        document.querySelectorAll('.bento-card').forEach(card => {
-            card.addEventListener('click', () => {
-                card.classList.add('scale-95');
-                setTimeout(() => card.classList.remove('scale-95'), 150);
-            });
-        });
+    function openAddMomentModal() {
+        const modal = document.getElementById('add-moment-modal');
+        document.getElementById('moment-date').valueAsDate = new Date();
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+    }
 
-        // Sticky header transition
-        window.addEventListener('scroll', () => {
-            const header = document.querySelector('header');
-            if (window.scrollY > 20) {
-                header.classList.add('shadow-md');
-            } else {
-                header.classList.remove('shadow-md');
-            }
-        });
-    </script>
+    function closeAddMomentModal() {
+        const modal = document.getElementById('add-moment-modal');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+    }
 
-
-</body></html>
+    function handleSaveMoment(e) {
+        e.preventDefault();
+        alert('重要時刻已成功新增！');
+        closeAddMomentModal();
+        window.location.reload();
+    }
+</script>
+{% endblock %}
