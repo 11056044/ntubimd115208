@@ -171,25 +171,3 @@ def google_auth_login(request):
 def logout_user(request):
     request.session.flush()
     return redirect('login')
-
-def demo_login(request):
-    user_profile = UserProfile.objects.filter(user_id=3).first()
-    if not user_profile:
-        user_profile = UserProfile.objects.first()
-    if not user_profile:
-        user_profile = UserProfile.objects.create(
-            user_id=1,
-            name="展示媽媽",
-            email="demo@example.com",
-            avatar=""
-        )
-    
-    request.session['user_id'] = str(user_profile.user_id)
-    request.session['user_email'] = user_profile.email
-    request.session['user_name'] = user_profile.name
-    request.session['user_avatar'] = user_profile.avatar or ''
-    request.session.pop('active_case_id', None)
-    request.session.pop('active_baby_id', None)
-    request.session.modified = True
-    
-    return redirect('/')
