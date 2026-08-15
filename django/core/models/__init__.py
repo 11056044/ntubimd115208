@@ -6,6 +6,7 @@ from .CareRecord import CareRecord
 from .CareStatus import CareStatus
 from .PregnancyCase import PregnancyCase
 from .FamilyMmember import FamilyMember
+from .JoinRequest import JoinRequest
 from .PregnancyRecord import PregnancyRecord
 from .Feeling import Feeling
 from .Physicalcondition import PhysicalCondition

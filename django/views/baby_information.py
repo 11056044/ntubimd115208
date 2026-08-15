@@ -5,6 +5,8 @@ from core.models import BabyInformation, FamilyMember
 from views import baby_utils
 from views.pregnancycase import resolve_active_pregnancy_case, validate_birth_datetime
 from views.session_utils import get_current_user_profile
+# validate_birth_vitals 已集中定義於 baby_utils，這裡透過 baby_utils.validate_birth_vitals 呼叫
+
 
 # ==================== 1. 新增功能 ====================
 def add_baby_information(request):
@@ -40,16 +42,29 @@ def add_baby_information(request):
                 'case': case,
                 'form_data': request.POST
             })
-        
+
+        # ── 體徵範圍驗證（體重單位 kg，其餘 cm） ──
+        w  = baby_utils.parse_float(request.POST.get('birth_weight'))
+        h  = baby_utils.parse_float(request.POST.get('birth_height'))
+        hc = baby_utils.parse_float(request.POST.get('birth_head'))
+        cc = baby_utils.parse_float(request.POST.get('birth_chest'))
+        vital_error = baby_utils.validate_birth_vitals(w, h, hc, cc)
+        if vital_error:
+            return render(request, 'baby/add_babyinformation.html', {
+                'error': vital_error,
+                'case': case,
+                'form_data': request.POST
+            })
+
         # 驗證通過，建立新資料
         new_baby = BabyInformation.objects.create(
             pregnancycase=case,
             name=(request.POST.get('baby_name') or '').strip() or '小寶',
             birthdaytime=b_time,
-            baby_height=baby_utils.parse_float(request.POST.get('birth_height')),
-            baby_weight=baby_utils.parse_float(request.POST.get('birth_weight')),
-            babyheadcircumference=baby_utils.parse_float(request.POST.get('birth_head')),
-            chestcircumference=baby_utils.parse_float(request.POST.get('birth_chest')),
+            baby_height=h,
+            baby_weight=w,
+            babyheadcircumference=hc,
+            chestcircumference=cc,
             production_method=(request.POST.get('production_method') or '').strip(),
         )
         request.session['active_baby_id'] = new_baby.baby_id
@@ -126,7 +141,7 @@ def edit_baby_information(request):
                     'birth_weeks_value': '',
                 })
 
-        # ── 出生時間合理性驗證（共用 pregnancycase.validate_birth_datetime，14w~43w 醫學防線） ──
+        # ── 出生時間合理性驗證（共用 pregnancycase.validate_birth_datetime，22w~43w 醫學防線） ──
         if new_birthdaytime:
             lmp = active_baby.pregnancycase.menstruation if active_baby.pregnancycase else None
             birth_error = validate_birth_datetime(lmp, new_birthdaytime)
@@ -144,11 +159,28 @@ def edit_baby_information(request):
             
             active_baby.birthdaytime = new_birthdaytime
             
+        # ── 體徵範圍驗證（體重單位 kg，其餘 cm） ──
+        w  = baby_utils.parse_float(request.POST.get('birth_weight'))
+        h  = baby_utils.parse_float(request.POST.get('birth_height'))
+        hc = baby_utils.parse_float(request.POST.get('birth_head'))
+        cc = baby_utils.parse_float(request.POST.get('birth_chest'))
+        vital_error = baby_utils.validate_birth_vitals(w, h, hc, cc)
+        if vital_error:
+            lmp = active_baby.pregnancycase.menstruation if active_baby.pregnancycase else None
+            return render(request, 'baby/edit_babyinformation.html', {
+                'baby': active_baby,
+                'error': vital_error,
+                'birthdaytime_value': request.POST.get('birthdaytime'),
+                'join_code': getattr(active_baby.pregnancycase, 'code', '') if active_baby.pregnancycase_id else '',
+                'lmp_date_value': lmp.strftime('%Y-%m-%d') if lmp else '',
+                'birth_weeks_value': '',
+            })
+
         # 無論有沒有改 birthdaytime，其餘體徵欄位皆同步更新
-        active_baby.baby_weight           = baby_utils.parse_float(request.POST.get('birth_weight'))
-        active_baby.baby_height           = baby_utils.parse_float(request.POST.get('birth_height'))
-        active_baby.babyheadcircumference = baby_utils.parse_float(request.POST.get('birth_head'))
-        active_baby.chestcircumference    = baby_utils.parse_float(request.POST.get('birth_chest'))
+        active_baby.baby_weight           = w
+        active_baby.baby_height           = h
+        active_baby.babyheadcircumference = hc
+        active_baby.chestcircumference    = cc
         if (request.POST.get('production_method') or '').strip(): 
             active_baby.production_method = request.POST.get('production_method').strip()
         

@@ -1,7 +1,8 @@
+from django.db import transaction
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from core.models import FamilyMember, BabyInformation, UserProfile
-from core import join_requests_manager
+from views import join_request
 from views.pregnancycase import resolve_active_pregnancy_case
 from views.session_utils import get_current_user_profile
 from views import baby_utils
@@ -37,7 +38,7 @@ def edit_family_member(request):
 
     pending_members = []
     if case and case.user == current_user:
-        pending_reqs = join_requests_manager.get_pending_requests(case.pregnancycase_id)
+        pending_reqs = join_request.get_pending_requests(case.pregnancycase_id)
         for pr in pending_reqs:
             u = UserProfile.objects.filter(user_id=pr['user_id']).first()
             if u:
@@ -114,22 +115,23 @@ def edit_family_member(request):
                 add_error = '只有此胎數的擁有者才能核准申請'
             else:
                 req_id = request.POST.get('request_id')
-                if req_id and join_requests_manager.has_pending_request(case.pregnancycase_id, req_id):
+                if req_id and join_request.has_pending_request(case.pregnancycase_id, req_id):
                     target_user = UserProfile.objects.filter(user_id=req_id).first()
                     if target_user:
-                        FamilyMember.objects.create(
-                            pregnancycase=case,
-                            user=target_user,
-                            permissions={key: 'view' for key in baby_utils.FEATURE_KEYS},
-                        )
-                        join_requests_manager.remove_request(case.pregnancycase_id, req_id)
+                        with transaction.atomic():
+                            FamilyMember.objects.create(
+                                pregnancycase=case,
+                                user=target_user,
+                                permissions={key: 'view' for key in baby_utils.FEATURE_KEYS},
+                            )
+                            join_request.remove_request(case.pregnancycase_id, req_id)
                         add_success = f'已同意「{target_user.name}」加入，預設權限為全部檢視，可再調整。'
                         members = list(
                             FamilyMember.objects.filter(pregnancycase_id=case)
                             .select_related('user').order_by('join_time')
                         )
                         pending_members = []
-                        pending_reqs = join_requests_manager.get_pending_requests(case.pregnancycase_id)
+                        pending_reqs = join_request.get_pending_requests(case.pregnancycase_id)
                         for pr in pending_reqs:
                             u = UserProfile.objects.filter(user_id=pr['user_id']).first()
                             if u:
@@ -148,17 +150,18 @@ def edit_family_member(request):
                 add_error = '只有此胎數的擁有者才能拒絕申請'
             else:
                 req_id = request.POST.get('request_id')
-                if req_id and join_requests_manager.has_pending_request(case.pregnancycase_id, req_id):
+                if req_id and join_request.has_pending_request(case.pregnancycase_id, req_id):
                     target_user = UserProfile.objects.filter(user_id=req_id).first()
                     applicant_name = target_user.name if target_user else "申請者"
-                    join_requests_manager.remove_request(case.pregnancycase_id, req_id)
+                    with transaction.atomic():
+                        join_request.remove_request(case.pregnancycase_id, req_id)
                     add_success = f'已拒絕「{applicant_name}」的加入申請。'
                     members = list(
                         FamilyMember.objects.filter(pregnancycase_id=case)
                         .select_related('user').order_by('join_time')
                     )
                     pending_members = []
-                    pending_reqs = join_requests_manager.get_pending_requests(case.pregnancycase_id)
+                    pending_reqs = join_request.get_pending_requests(case.pregnancycase_id)
                     for pr in pending_reqs:
                         u = UserProfile.objects.filter(user_id=pr['user_id']).first()
                         if u:

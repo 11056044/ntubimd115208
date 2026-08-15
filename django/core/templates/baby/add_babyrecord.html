@@ -62,19 +62,19 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">身高 (CM)</span>
-                        <input name="height" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.1" min="0" placeholder="0.0" value="{{ form_data.height|default:'' }}" />
+                        <input name="height" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.1" min="25" max="130" placeholder="0.0" value="{{ form_data.height|default:'' }}" />
                     </div>
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">體重 (KG)</span>
-                        <input name="weight" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.1" min="0" placeholder="0.0" value="{{ form_data.weight|default:'' }}" />
+                        <input name="weight" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.01" min="0.3" max="30" placeholder="0.0" value="{{ form_data.weight|default:'' }}" />
                     </div>
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">頭圍 (CM)</span>
-                        <input name="headcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.1" min="0" placeholder="0.0" value="{{ form_data.headcircumference|default:'' }}" />
+                        <input name="headcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.1" min="25" max="60" placeholder="0.0" value="{{ form_data.headcircumference|default:'' }}" />
                     </div>
                     <div class="bg-[#d6beff4d] p-5 rounded-3xl relative flex flex-col justify-center items-center gap-2 h-24">
                         <span class="text-[10px] font-bold text-[#65518a]/80">胸圍 (CM)</span>
-                        <input name="chestcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.1" min="0" placeholder="0.0" value="{{ form_data.chestcircumference|default:'' }}" />
+                        <input name="chestcircumference" class="bg-transparent text-center border-none p-0 text-3xl font-headline font-bold text-[#65518a] w-full focus:ring-0 placeholder:text-[#65518a]/30" type="number" step="0.1" min="20" max="60" placeholder="0.0" value="{{ form_data.chestcircumference|default:'' }}" />
                     </div>
                 </div>
             </div>
