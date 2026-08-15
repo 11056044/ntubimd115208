@@ -61,7 +61,7 @@ def social_sharing_card_view(request):
             status = BabyStatus.objects.filter(babyrecord=r).select_related('babygrowthmap').first()
             label = f"里程碑：{status.babygrowthmap.growthrecord}" if status else "成長紀錄"
             record_photos.append({
-                'url': r.photo,
+                'url': r.photo if r.photo else '',
                 'label': label,
                 'date': r.date.strftime('%Y-%m-%d'),
                 'description': r.record or ''
@@ -71,7 +71,7 @@ def social_sharing_card_view(request):
         prenatal_records = Prenatalrecord.objects.filter(pregnancyrecord__user=user).exclude(photo__isnull=True).exclude(photo='').select_related('pregnancyrecord').order_by('-pregnancyrecord__check_date')
         for pr in prenatal_records:
             record_photos.append({
-                'url': pr.photo,
+                'url': pr.photo if pr.photo else '',
                 'label': "產檢超音波",
                 'date': pr.pregnancyrecord.check_date.strftime('%Y-%m-%d'),
                 'description': pr.pregnancyrecord.record or ''

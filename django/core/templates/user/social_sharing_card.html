@@ -94,8 +94,8 @@
                     <div class="space-y-1.5">
                         <div class="flex justify-between items-center">
                             <label class="text-xs font-bold text-on-surface-variant">想說的話 / 溫馨筆記</label>
-                            <button type="button" id="btn-suggest-text" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                                <span class="material-symbols-outlined text-xs">lightbulb</span>推薦文案
+                            <button type="button" id="btn-today-note" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">edit_calendar</span>當日成長筆記
                             </button>
                         </div>
                         <textarea id="card-message" rows="3" placeholder="例如：今天寶寶自己翻過去了，全家人都開心地大叫，太神奇的一刻！" 
@@ -253,8 +253,8 @@
         const milestoneSelector = document.getElementById('milestone-selector');
         
         // Buttons
-        const btnSuggestText = document.getElementById('btn-suggest-text');
         const btnDownload = document.getElementById('btn-download');
+        const btnTodayNote = document.getElementById('btn-today-note');
         const btnShareLine = document.getElementById('btn-share-line');
         const btnShareNative = document.getElementById('btn-share-native');
         
@@ -649,6 +649,14 @@
                         uploadedImage = img;
                         updateCanvas();
                     };
+                    img.onerror = function() {
+                        // Photo failed to load (broken URL, 404, CORS, etc.)
+                        // Fall back to the cute baby placeholder instead of leaving a blank/stale canvas
+                        uploadedImage = null;
+                        photoBtns.forEach(btn => btn.classList.remove('ring-4', 'ring-primary', 'border-primary'));
+                        updateCanvas();
+                        showToast("照片載入失敗，已改用預設插畫 🧸");
+                    };
                     img.src = photoUrl;
                     
                     // Highlight the matching thumbnail in the album grid
@@ -669,24 +677,25 @@
             });
         }
 
-        // Preset warm messages
-        const suggestions = [
-            "第一次成功把頭抬高，好奇地看著四周！全家人都太高興啦，你是最棒的小探索家！",
-            "寶寶今天突然一用力，骨碌一下就翻過身來了！爸爸媽媽開心地一直拍手，真是神奇的一刻！",
-            "像個毛毛蟲一樣努力挪動，手腳並用往前爬！看著你小小的背影，心裡都是滿滿的感動。",
-            "看你抓起玩具玩得不亦樂乎，那專注的小眼神，讓爸爸媽媽覺得你瞬間長大了好多！",
-            "甜甜的笑容是給爸爸媽媽最棒的禮物。謝謝你健康快樂地成長，我們會一直守護在你身邊！",
-            "第一次聽你發出類似『爸、爸』『媽、媽』的音，雖然不清楚，但我們的心都跟著融化了！"
-        ];
-        let currentSuggestIndex = 0;
-        
-        btnSuggestText.addEventListener('click', function() {
-            inputMessage.value = suggestions[currentSuggestIndex];
-            currentSuggestIndex = (currentSuggestIndex + 1) % suggestions.length;
-            updateCanvas();
-            showToast("已更換推薦文案 ✨");
-        });
-        
+        // 「當日成長筆記」— 抓取「目前選取里程碑」達成日期當天的 BabyRecord.record
+        if (btnTodayNote) {
+            btnTodayNote.addEventListener('click', function() {
+                if (!milestoneSelector || !milestoneSelector.value) {
+                    showToast("請先選擇一個已達成的里程碑 📋");
+                    return;
+                }
+                const opt = milestoneSelector.options[milestoneSelector.selectedIndex];
+                const recordText = opt.getAttribute('data-record');
+                if (recordText) {
+                    inputMessage.value = recordText;
+                    updateCanvas();
+                    showToast("已帶入當日成長筆記 📝");
+                } else {
+                    showToast("這天還沒有成長紀錄喔 📭");
+                }
+            });
+        }
+
         function getWarmSuggestText(milestoneName) {
             if (milestoneName.includes('翻身')) {
                 return "寶寶今天突然用力翻身了！全家人都開心地為你鼓掌，真是太神奇的瞬間！";
@@ -732,6 +741,14 @@
                     uploadedImage = img;
                     updateCanvas();
                     showToast("已選取紀錄照片 📸");
+                };
+                img.onerror = function() {
+                    // Photo failed to load (broken URL, 404, CORS, etc.)
+                    // Fall back to the cute baby placeholder instead of leaving a blank/stale canvas
+                    uploadedImage = null;
+                    photoBtns.forEach(b => b.classList.remove('ring-4', 'ring-primary', 'border-primary'));
+                    updateCanvas();
+                    showToast("照片載入失敗，已改用預設插畫 🧸");
                 };
                 img.src = url;
             });
