@@ -92,7 +92,7 @@
                     {% else %}
                     <div id="qa-empty-state" class="rounded-[2rem] border border-outline-variant/20 bg-white/80 px-6 py-5 shadow-sm">
                         <div class="text-xs font-semibold uppercase tracking-[0.2em] text-on-surface-variant">歡迎開始提問</div>
-                        <p class="mt-2 text-sm leading-relaxed text-on-surface-variant">你可以詢問產檢、孕期不適的注意事項。 資料來源：衛生福利部國民健康署 孕產兒關懷網站</p>
+                        <p class="mt-2 text-sm leading-relaxed text-on-surface-variant">你可以詢問產檢、孕期不適、新生兒的相關問題。 資料來源：衛生福利部國民健康署 孕產兒關懷網站</p>
                     </div>
                     {% endif %}
                 </div>
@@ -107,7 +107,7 @@
                 <input type="hidden" name="conversation_id" value="{{ current_conversation_id }}" />
                 {% endif %}
                 <div class="flex-grow">
-                    <input id="qa-question-input" name="question" required class="w-full bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/60 text-sm font-medium py-2 px-2" placeholder="詢問關於孕期的任何事情..." type="text" />
+                    <input id="qa-question-input" name="question" required class="w-full bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/60 text-sm font-medium py-2 px-2" placeholder="詢詢問產檢、孕期不適、新生兒的相關問題..." type="text" />
                 </div>
                 <button type="submit" class="w-9 h-9 bg-primary text-white rounded-lg flex items-center justify-center hover:bg-primary/90 transition-all active:scale-95 shadow-md">
                     <span class="material-symbols-outlined text-[20px]">send</span>
