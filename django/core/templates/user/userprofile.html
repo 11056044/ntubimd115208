@@ -3,6 +3,41 @@
 {% block title %}個人資料{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user/userprofile.css' %}">
+<style>
+    /* 協助者名單：身份徽章 */
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.4;
+        white-space: nowrap;
+    }
+
+    .role-badge-owner {
+        background-color: rgba(101, 81, 138, 0.15); /* primary/15 */
+        color: #65518a; /* primary */
+    }
+
+    .role-badge-helper {
+        background-color: rgba(46, 47, 45, 0.08); /* surface-container-high */
+        color: #5b5c5a; /* on-surface-variant */
+    }
+
+    /* 協助者名單：管理權限按鈕 */
+    .member-manage-link {
+        color: rgba(91, 92, 90, 0.5); /* on-surface-variant/50 */
+        padding: 8px;
+        transition: color 0.2s ease;
+    }
+
+    .member-manage-link:hover {
+        color: #65518a; /* primary */
+    }
+</style>
 {% endblock %}
 {% block content %}
     <main class="px-6 py-8 space-y-6 mx-auto max-w-md md:max-w-none w-full transition-all duration-500 ease-in-out md:px-8 lg:px-16 xl:px-32 2xl:px-64">
@@ -62,16 +97,21 @@
                         <div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-lg">
                             <span class="material-symbols-outlined text-[22px]">face</span>
                         </div>
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold text-on-surface">{{ member.user.name }}</span>
-                        </div>
+                        <span class="text-sm font-bold text-on-surface">{{ member.user.name }}</span>
                     </div>
-                    {% if is_case_owner %}
-                    <a href="{% url 'edit_family_member' %}?member_id={{ member.familymember_id }}"
-                       class="text-on-surface-variant/50 hover:text-primary transition-colors p-2">
-                        <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
-                    </a>
-                    {% endif %}
+                    <div class="flex items-center gap-2">
+                        {% if member.role_label %}
+                        <span class="role-badge {% if member.is_owner_member %}role-badge-owner{% else %}role-badge-helper{% endif %}">
+                            {{ member.role_label }}
+                        </span>
+                        {% endif %}
+                        {% if is_case_owner %}
+                        <a href="{% url 'edit_family_member' %}?member_id={{ member.familymember_id }}"
+                           class="member-manage-link">
+                            <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
                 {% empty %}
                 <div class="py-6 text-center">

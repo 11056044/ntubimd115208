@@ -34,6 +34,21 @@ def _format_number(value):
     return str(value)
 
 
+def _annotate_family_roles(family_members):
+    """依 join_time 最早者為「養育者」，其餘為「協助者」。
+    family_members 需已依 join_time 由小到大排序（order_by('join_time')）。
+    直接在每個 FamilyMember 實例上附加 role_label / is_owner_member 屬性供 template 顯示，不寫入資料庫。
+    """
+    for index, member in enumerate(family_members):
+        if index == 0:
+            member.is_owner_member = True
+            member.role_label = '養育者'
+        else:
+            member.is_owner_member = False
+            member.role_label = '協助者'
+    return family_members
+
+
 def _latest_weight_for_selection(request, user):
     record = (
         PregnancyRecord.objects.filter(user=user)
@@ -136,6 +151,7 @@ def userprofile(request):
             .select_related('user')
             .order_by('join_time')
         )
+        _annotate_family_roles(family_members)
         is_case_owner = bool(case and case.user_id == current_user.user_id)
         if case.user_id == current_user.user_id:
             can_manage_helpers = True
@@ -201,6 +217,7 @@ def join_family(request):
             .select_related('user')
             .order_by('join_time')
         )
+        _annotate_family_roles(family_members)
         if active_case.user_id == current_user.user_id:
             can_manage_helpers = True
             pending_count = len(join_request.get_pending_requests(active_case.pregnancycase_id))
