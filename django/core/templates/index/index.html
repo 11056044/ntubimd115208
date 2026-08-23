@@ -29,8 +29,13 @@
                     <div class="flex items-center gap-6 mt-4">
                         <div
                             class="relative w-24 h-24 flex items-center justify-center bg-primary-container rounded-full overflow-hidden shrink-0">
+                            {% if pregnancy_progress.is_ongoing %}
                             <img alt="Embryo illustration" class="w-full h-full object-cover"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrKZf3KG9X7eILhFiWKrV_XnVbNzlNNk53ehHHkkcKKCJERwNP49wVlRn3tR5ZhCszTKBPyEpLefs5YJCM8c-f0xNBc7BGb8IOS_Veq4i-9HM3rUIy8Cm2aUGwM7HseTdogavWToiVWXC8ZwHdyIntscQlw_sHGAJM0EbSIGP1_kRsI5Ly_wfRkCcE2lEEgYemQX1r7B6E_L651x2VN9W-dxJP0Ol8pw9Wo3YJPOmtdm8_bMLA2tWtiEsKOvIEBw2YMf4DrGcl8yKb" />
+                            {% else %}
+                            <img alt="Baby illustration" class="w-full h-full object-cover"
+                                src="{% static 'media/baby_born_icon.png' %}" />
+                            {% endif %}
                         </div>
                         <div class="space-y-0.5">
                             {% if pregnancy_progress.is_ongoing and pregnancy_progress.weeks is not None %}
