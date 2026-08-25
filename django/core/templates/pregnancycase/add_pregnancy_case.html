@@ -36,27 +36,26 @@
                 <div class="space-y-5">
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">
-                            最後月經日期 <span class="text-red-500">*</span>
+                            最後月經日期
                         </label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">event</span>
                             <input type="date" name="menstruation" id="menstruation-input"
-                                required
                                 max="{% now 'Y-m-d' %}"
                                 value="{{ form_data.menstruation|default:'' }}"
                                 class="w-full bg-surface-container-low border-none rounded-xl pl-12 pr-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
                         </div>
-                        <p class="text-xs text-on-surface-variant pl-1">必填，系統將依此自動計算預產期</p>
+                        <p class="text-xs text-on-surface-variant pl-1" id="menstruation-hint">填寫後將自動算出預產期</p>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">預產期（系統自動推算）</label>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">預產期</label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/30">calendar_today</span>
                             <input type="date" name="expecteddate" id="expecteddate-input"
-                                readonly
-                                class="w-full bg-surface-container-high/50 border-none rounded-xl pl-12 pr-4 py-3.5 text-on-surface-variant cursor-not-allowed transition-all text-sm outline-none font-medium" />
+                                value="{{ form_data.expecteddate|default:'' }}"
+                                class="w-full bg-surface-container-low border-none rounded-xl pl-12 pr-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
                         </div>
-                        <p class="text-xs text-on-surface-variant pl-1">依最後月經日期自動推算（Naegele's Rule），不需手動填寫</p>
+                        <p class="text-xs text-on-surface-variant pl-1" id="expecteddate-hint">填寫後將自動回推最後月經日期</p>
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">加入碼 (供其他家人綁定)</label>
@@ -127,36 +126,76 @@
 <script src="{% static 'js/pregnancy_due_date.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // ── 最後月經日期 → 預產期自動推算（Naegele's Rule） ──────────────────────
+    // ── 最後月經日期 ⇄ 預產期：雙向自動推算（Naegele's Rule，與後端公式一致） ──
     const menstruationInput = document.getElementById('menstruation-input');
     const expecteddateInput = document.getElementById('expecteddate-input');
+    const menstruationHint  = document.getElementById('menstruation-hint');
+    const expecteddateHint  = document.getElementById('expecteddate-hint');
     const todayStr = new Date().toISOString().split('T')[0];
 
     // 確保最後月經日期不能選未來日期
     if (menstruationInput) menstruationInput.max = todayStr;
 
-    function calcEDD(lmpStr) {
+    function pad2(n) { return String(n).padStart(2, '0'); }
+
+    // 純本地日期運算（不經 toISOString 轉換），避免時區偏移造成日期誤差
+    function daysInMonth(year, month) { // month: 1-12
+        return new Date(year, month, 0).getDate();
+    }
+    function addDays(year, month, day, delta) {
+        const dt = new Date(year, month - 1, day);
+        dt.setDate(dt.getDate() + delta);
+        return [dt.getFullYear(), dt.getMonth() + 1, dt.getDate()];
+    }
+    function formatYMD(y, m, d) {
+        return `${y}-${pad2(m)}-${pad2(d)}`;
+    }
+    function parseYMD(str) {
+        const [y, m, d] = str.split('-').map(Number);
+        return [y, m, d];
+    }
+
+    // 最後月經日期 → 預產期：月份減 3（不足則加 12、年份減 1），日期加 7
+    function calcDueFromLMP(lmpStr) {
         if (!lmpStr) return '';
-        const lmp = new Date(lmpStr + 'T00:00:00');
-        if (isNaN(lmp.getTime())) return '';
-        const edd = new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000);
-        return edd.toISOString().split('T')[0];
+        const [y, m, d] = parseYMD(lmpStr);
+        let year = y + 1;
+        let month = m - 3;
+        if (month <= 0) { month += 12; year -= 1; }
+        const day = Math.min(d, daysInMonth(year, month));
+        const [fy, fm, fd] = addDays(year, month, day, 7);
+        return formatYMD(fy, fm, fd);
     }
 
-    function updateEDD() {
-        if (!expecteddateInput || !menstruationInput) return;
-        const edd = calcEDD(menstruationInput.value);
-        // removeAttribute + setAttribute 繞過瀏覽器對 readonly 的寫入防範
-        expecteddateInput.removeAttribute('readonly');
-        expecteddateInput.value = edd;
-        expecteddateInput.setAttribute('readonly', '');
+    // 預產期 → 最後月經日期：上述公式的反推（月份加 3，日期減 7）
+    function calcLMPFromDue(dueStr) {
+        if (!dueStr) return '';
+        const [y, m, d] = parseYMD(dueStr);
+        let year = y - 1;
+        let month = m + 3;
+        if (month > 12) { month -= 12; year += 1; }
+        const day = Math.min(d, daysInMonth(year, month));
+        const [fy, fm, fd] = addDays(year, month, day, -7);
+        return formatYMD(fy, fm, fd);
     }
 
-    if (menstruationInput) {
-        menstruationInput.addEventListener('change', updateEDD);
-        menstruationInput.addEventListener('input', updateEDD);
-        // 頁面載入時若已有胎數資料（錯誤返回後保留欄位內容）
-        if (menstruationInput.value) updateEDD();
+    if (menstruationInput && expecteddateInput) {
+        menstruationInput.addEventListener('input', function () {
+            expecteddateInput.value = calcDueFromLMP(menstruationInput.value);
+            if (menstruationHint) menstruationHint.textContent = '已自動算出預產期';
+            if (expecteddateHint) expecteddateHint.textContent = '（依最後月經日期自動推算）';
+        });
+        expecteddateInput.addEventListener('input', function () {
+            menstruationInput.value = calcLMPFromDue(expecteddateInput.value);
+            if (expecteddateHint) expecteddateHint.textContent = '已自動回推最後月經日期';
+            if (menstruationHint) menstruationHint.textContent = '（依預產期自動回推）';
+        });
+        // 頁面載入時若已有資料（錯誤返回後保留欄位內容），依現有值補算另一欄
+        if (menstruationInput.value && !expecteddateInput.value) {
+            expecteddateInput.value = calcDueFromLMP(menstruationInput.value);
+        } else if (expecteddateInput.value && !menstruationInput.value) {
+            menstruationInput.value = calcLMPFromDue(expecteddateInput.value);
+        }
     }
 
     // ── 複製加入碼 ────────────────────────────────────────────

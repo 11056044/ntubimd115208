@@ -583,6 +583,20 @@ def _calculate_expected_date(menstruation):
     return due
 
 
+def _calculate_lmp_from_due(expecteddate):
+    """LMP from EDD：Naegele's rule 反推（月＋3、日－7、年－1），為 _calculate_expected_date 的反函式。"""
+    if not expecteddate:
+        return None
+    year = expecteddate.year - 1
+    month = expecteddate.month + 3
+    if month > 12:
+        month -= 12
+        year += 1
+    day = min(expecteddate.day, calendar.monthrange(year, month)[1])
+    lmp = expecteddate.replace(year=year, month=month, day=day) - timedelta(days=7)
+    return lmp
+
+
 def _generate_unique_code():
     """Generate a unique 6-character alphanumeric join code."""
     while True:
@@ -643,32 +657,44 @@ def add_pregnancy_case(request):
         expecteddate_str = (request.POST.get('expecteddate') or '').strip()
         code = (request.POST.get('code') or '').strip()
 
-        # 最後月經日期為必填
-        if not menstruation_str:
+        # 最後月經日期／預產期擇一必填，缺少的一方由系統自動推算（Naegele's Rule）
+        if not menstruation_str and not expecteddate_str:
             generated_code = _generate_unique_code()
             return render(request, 'pregnancycase/add_pregnancy_case.html', {
                 'generated_code': generated_code,
-                'error': '請填寫最後一次月經日期',
+                'error': '請填寫最後一次月經日期或預產期（擇一填寫即可）',
                 'form_data': request.POST,
             })
 
-        try:
-            menstruation = datetime.strptime(menstruation_str, '%Y-%m-%d').date()
-        except ValueError:
-            generated_code = _generate_unique_code()
-            return render(request, 'pregnancycase/add_pregnancy_case.html', {
-                'generated_code': generated_code,
-                'error': '月經日期格式不正確，請重新輸入',
-                'form_data': request.POST,
-            })
+        menstruation = None
+        if menstruation_str:
+            try:
+                menstruation = datetime.strptime(menstruation_str, '%Y-%m-%d').date()
+            except ValueError:
+                generated_code = _generate_unique_code()
+                return render(request, 'pregnancycase/add_pregnancy_case.html', {
+                    'generated_code': generated_code,
+                    'error': '月經日期格式不正確，請重新輸入',
+                    'form_data': request.POST,
+                })
 
-        # 預產期：優先使用使用者填寫的值，否則自動以 Naegele's Rule 推算
-        try:
-            expecteddate = datetime.strptime(expecteddate_str, '%Y-%m-%d').date() if expecteddate_str else None
-        except ValueError:
-            expecteddate = None
-        if not expecteddate:
+        expecteddate = None
+        if expecteddate_str:
+            try:
+                expecteddate = datetime.strptime(expecteddate_str, '%Y-%m-%d').date()
+            except ValueError:
+                generated_code = _generate_unique_code()
+                return render(request, 'pregnancycase/add_pregnancy_case.html', {
+                    'generated_code': generated_code,
+                    'error': '預產期格式不正確，請重新輸入',
+                    'form_data': request.POST,
+                })
+
+        # 兩者擇一送出即可：缺少的那一個由另一個自動推算（Naegele's Rule／其反推公式）
+        if menstruation and not expecteddate:
             expecteddate = _calculate_expected_date(menstruation)
+        elif expecteddate and not menstruation:
+            menstruation = _calculate_lmp_from_due(expecteddate)
 
         if not code or PregnancyCase.objects.filter(code=code).exists():
             code = _generate_unique_code()
@@ -915,4 +941,3 @@ def edit_pregnancy_case(request):
         'expecteddate_str': case.expecteddate.strftime('%Y-%m-%d') if case.expecteddate else '',
         'is_overdue': status == 'overdue',
     })
-
