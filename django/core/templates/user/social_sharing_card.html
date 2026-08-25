@@ -466,7 +466,28 @@
             const boxX = 100;
             const boxY = 120;
             const boxW = 600;
-            const boxH = 500;
+            
+            // Default sizes
+            let boxH = 500;
+            let photoH = boxH - 70; // 430
+            
+            const photoX = boxX + 20;
+            const photoY = boxY + 20;
+            const photoW = boxW - 40; // 560
+            
+            if (uploadedImage) {
+                const imgW = uploadedImage.width;
+                const imgH = uploadedImage.height;
+                const imageRatio = imgW / imgH;
+                
+                // If it is landscape, we can dynamically scale height to avoid empty white spaces
+                if (imageRatio > 1.1) {
+                    const targetPhotoH = Math.round(photoW / imageRatio);
+                    // Make sure it doesn't get too small or too large
+                    photoH = Math.max(260, Math.min(430, targetPhotoH));
+                    boxH = photoH + 70;
+                }
+            }
             
             // White polaroid base with shadow
             ctx.shadowColor = 'rgba(74, 63, 53, 0.15)';
@@ -481,20 +502,19 @@
             ctx.shadowBlur = 0;
             ctx.shadowOffsetY = 0;
 
-            const photoX = boxX + 25;
-            const photoY = boxY + 25;
-            const photoW = boxW - 50;
-            const photoH = boxH - 80; // Leave space at bottom of polaroid for title/date
-
             if (uploadedImage) {
-                // Render uploaded / loaded image inside photo frame (Cover crop)
+                // Render uploaded / loaded image inside photo frame (Contain fit, no cropping)
                 ctx.save();
                 ctx.roundRect(photoX, photoY, photoW, photoH, 8);
                 ctx.clip();
                 
+                // Draw a soft background under the contained image
+                ctx.fillStyle = '#FCFAF8';
+                ctx.fillRect(photoX, photoY, photoW, photoH);
+                
                 const imgW = uploadedImage.width;
                 const imgH = uploadedImage.height;
-                const r = Math.max(photoW / imgW, photoH / imgH);
+                const r = Math.min(photoW / imgW, photoH / imgH);
                 const nw = imgW * r;
                 const nh = imgH * r;
                 const cx = (photoW - nw) / 2;
@@ -527,64 +547,83 @@
             ctx.textAlign = 'right';
             ctx.fillText(formattedDate || '記錄日期', boxX + boxW - 30, boxY + boxH - 22);
 
-            // 6. Draw Milestone Title text (centered)
+            // Calculate bottom of polaroid box
+            const boxBottomY = boxY + boxH;
+            const dividerY = 920;
+            const availableSpace = dividerY - boxBottomY; // e.g. 300px to 415px
+            
+            // Text values
             const milestoneText = inputMilestoneTitle.value || '第一次學會了！';
+            const nameText = inputBabyName.value || '寶寶';
+            const ageText = inputBabyAge.value || '3個月';
+            const messageVal = inputMessage.value || '今天真是非常棒的一天！';
+            
+            // Measure message lines
+            ctx.font = 'medium 20px "Be Vietnam Pro", sans-serif';
+            const lines = getLines(ctx, messageVal, 560);
+            const lineSpacing = 32;
+            const messageHeight = lines.length * lineSpacing - (lineSpacing - 20);
+            
+            // Define standard vertical gaps inside the bottom section
+            const gap1 = 25;
+            const gap2 = 35;
+            const totalContentHeight = 40 + gap1 + 44 + gap2 + messageHeight;
+            
+            // Center the entire content block vertically in the availableSpace
+            const startY = boxBottomY + (availableSpace - totalContentHeight) / 2;
+            
+            // 6. Draw Milestone Title text
+            const milestoneY = startY + 30; // Text baseline positioning
             ctx.fillStyle = theme.accentText;
             ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(milestoneText, width / 2, 680);
+            ctx.fillText(milestoneText, width / 2, milestoneY);
 
             // 7. Draw Pills for Name & Age
-            const nameText = inputBabyName.value || '寶寶';
-            const ageText = inputBabyAge.value || '3個月';
-            
+            const pillsY = startY + 40 + gap1;
             ctx.font = 'bold 22px "Be Vietnam Pro", sans-serif';
             const nameWidth = ctx.measureText(nameText).width + 36;
             const ageWidth = ctx.measureText(ageText).width + 36;
             
             const pillHeight = 44;
-            const spacing = 15;
+            const pillSpacing = 15;
             
-            const totalPillsWidth = nameWidth + ageWidth + spacing;
+            const totalPillsWidth = nameWidth + ageWidth + pillSpacing;
             const startPillX = (width - totalPillsWidth) / 2;
 
             // Name Pill
             ctx.fillStyle = theme.pillsBg;
             ctx.strokeStyle = theme.pillsBorder;
             ctx.lineWidth = 1.5;
-            ctx.roundRect(startPillX, 720, nameWidth, pillHeight, 22);
+            ctx.roundRect(startPillX, pillsY, nameWidth, pillHeight, 22);
             ctx.fill();
             ctx.stroke();
             
             ctx.fillStyle = theme.accentText;
             ctx.textAlign = 'left';
-            ctx.fillText(nameText, startPillX + 18, 750);
+            ctx.fillText(nameText, startPillX + 18, pillsY + pillHeight - 14);
 
             // Age Pill
-            const agePillX = startPillX + nameWidth + spacing;
+            const agePillX = startPillX + nameWidth + pillSpacing;
             ctx.fillStyle = theme.pillsBg;
             ctx.strokeStyle = theme.pillsBorder;
             ctx.lineWidth = 1.5;
-            ctx.roundRect(agePillX, 720, ageWidth, pillHeight, 22);
+            ctx.roundRect(agePillX, pillsY, ageWidth, pillHeight, 22);
             ctx.fill();
             ctx.stroke();
             
             ctx.fillStyle = theme.accentText;
             ctx.textAlign = 'left';
-            ctx.fillText(ageText, agePillX + 18, 750);
+            ctx.fillText(ageText, agePillX + 18, pillsY + pillHeight - 14);
 
             // 8. Draw customizable diary message
-            const messageVal = inputMessage.value || '今天真是非常棒的一天！';
+            const messageY = pillsY + pillHeight + gap2;
             ctx.fillStyle = '#4E3E2F';
             ctx.font = 'medium 20px "Be Vietnam Pro", sans-serif';
             ctx.textAlign = 'center';
             
-            const lines = getLines(ctx, messageVal, 560);
-            const lineSpacing = 32;
-            let startY = 810;
-            
             lines.forEach((line, index) => {
-                ctx.fillText(line, width / 2, startY + (index * lineSpacing));
+                ctx.fillText(line, width / 2, messageY + 20 + (index * lineSpacing));
             });
 
             // 9. Draw Footer divider & Branding Watermark
