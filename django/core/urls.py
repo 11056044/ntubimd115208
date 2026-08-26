@@ -1,5 +1,6 @@
 """Core URL routes."""
 
+from django.contrib.admindocs import views
 from django.urls import path, include
 
 from views import (
@@ -74,7 +75,8 @@ urlpatterns = [
         name='set_care_status'
     ),
 
-
+    path('delete_care_reminder/', care_record.delete_care_reminder, name='delete_care_reminder'),
+    path('care-reminder/edit/', care_record.edit_care_reminder, name='edit_care_reminder'),
     # ======================
     # 孕期紀錄
     # ======================
