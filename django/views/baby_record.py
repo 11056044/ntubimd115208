@@ -222,8 +222,8 @@ def add_baby_record(request):
         'form_data':      {'date': record_date.isoformat()},
         'milestones':     '',
         'today_iso':      today_iso,
-        'selected_month_abbr': MONTH_ABBR[record_date.month],  
-        'selected_day':        record_date.day, 
+        'selected_month_abbr': MONTH_ABBR[record_date.month],
+        'selected_day':        record_date.day,
     })
 
 
@@ -254,7 +254,7 @@ def edit_baby_record(request, babyrecord_id):
     if request.method == 'POST':
         date_str = request.POST.get('date')
         if not date_str:
-            return render(request, 'baby/add_babyrecord.html', {
+            return render(request, 'baby/edit_babyrecord.html', {
                 'is_edit':             True,
                 'record':              record,
                 'baby':                baby,
@@ -272,7 +272,7 @@ def edit_baby_record(request, babyrecord_id):
         try:
             record_date_edit = datetime.date.fromisoformat(date_str)
         except (ValueError, TypeError):
-            return render(request, 'baby/add_babyrecord.html', {
+            return render(request, 'baby/edit_babyrecord.html', {
                 'is_edit': True, 'record': record, 'baby': baby,
                 'baby_list': _get_accessible_babies(user),
                 'all_milestones': _get_milestones_for_edit(baby, record),
@@ -282,7 +282,7 @@ def edit_baby_record(request, babyrecord_id):
                 'today_iso': datetime.date.today().isoformat(),
             })
         if record_date_edit > datetime.date.today():
-            return render(request, 'baby/add_babyrecord.html', {
+            return render(request, 'baby/edit_babyrecord.html', {
                 'is_edit': True, 'record': record, 'baby': baby,
                 'baby_list': _get_accessible_babies(user),
                 'all_milestones': _get_milestones_for_edit(baby, record),
@@ -292,7 +292,7 @@ def edit_baby_record(request, babyrecord_id):
                 'today_iso': datetime.date.today().isoformat(),
             })
         if baby.birthdaytime and record_date_edit < baby.birthdaytime.date():
-            return render(request, 'baby/add_babyrecord.html', {
+            return render(request, 'baby/edit_babyrecord.html', {
                 'is_edit': True, 'record': record, 'baby': baby,
                 'baby_list': _get_accessible_babies(user),
                 'all_milestones': _get_milestones_for_edit(baby, record),
@@ -309,7 +309,7 @@ def edit_baby_record(request, babyrecord_id):
         cc = baby_utils.parse_float(request.POST.get('chestcircumference'))
         vital_error = _validate_record_vitals(h, w, hc, cc)
         if vital_error:
-            return render(request, 'baby/add_babyrecord.html', {
+            return render(request, 'baby/edit_babyrecord.html', {
                 'is_edit': True, 'record': record, 'baby': baby,
                 'baby_list': _get_accessible_babies(user),
                 'all_milestones': _get_milestones_for_edit(baby, record),
@@ -344,7 +344,7 @@ def edit_baby_record(request, babyrecord_id):
         return redirect(url_with_active_selection(request, reverse('babyinformation')))
 
     # ── GET：準備表單資料 ──────────────────────────────────
-    return render(request, 'baby/add_babyrecord.html', {
+    return render(request, 'baby/edit_babyrecord.html', {
         'is_edit':             True,
         'record':              record,
         'baby':                baby,
