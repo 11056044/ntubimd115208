@@ -1,187 +1,153 @@
 {% extends 'base/base.html' %}
 {% load static %}
-{% block title %}成長相簿 - 歷史回顧{% endblock %}
+{% block title %}回顧牆 - CoLoGrowth{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/history.css' %}">
 
-<main class="mx-auto px-4 sm:px-6 pt-5 pb-32 max-w-md md:max-w-3xl lg:max-w-4xl w-full transition-all duration-300">
-    
-    <!-- ========================================== -->
-    <!-- 共同 Header -->
-    <!-- ========================================== -->
-    <div class="flex items-center justify-between mb-4">
-        <button onclick="window.location.href='/history-review/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}'" class="flex items-center gap-1.5 text-xs font-bold text-[#8064A2] bg-[#EDE5F5] hover:bg-[#A98BC7]/20 px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer" type="button">
-            <span class="material-symbols-outlined text-base">arrow_back</span>
-            <span>返回</span>
-        </button>
-        <span class="text-[11px] font-bold text-[#81758A] bg-white border border-[#E8E0EF] px-3 py-1 rounded-full shadow-2xs">
-            📸 成長相簿
-        </span>
-    </div>
+<main class="mx-auto px-4 pt-5 pb-32 max-w-md w-full transition-all duration-300">
 
-    <header class="mb-5">
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans'] tracking-tight">
-            成長相簿
-        </h1>
-        <p class="text-xs sm:text-sm font-medium text-[#81758A] font-['Be_Vietnam_Pro'] mt-1">
-            「收藏每一個值得記住的瞬間」
-        </p>
+    <!-- ========================================== -->
+    <!-- 📖 頁面 Header & 右上 Icon -->
+    <!-- ========================================== -->
+    <header class="flex items-center justify-between mb-5">
+        <div>
+            <h1 class="text-2xl font-extrabold text-[#65518a] font-['Plus_Jakarta_Sans'] tracking-tight mb-0.5">
+                回顧牆
+            </h1>
+            <p class="text-xs text-[#81758A] font-medium font-['Be_Vietnam_Pro']">
+                用照片與影片，珍藏每個重要時刻
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 text-[#8064A2]">
+            <button class="w-8 h-8 rounded-full bg-[#EDE5F5] flex items-center justify-center hover:bg-[#EDE5F5]/80 transition-colors">
+                <span class="material-symbols-outlined text-base">search</span>
+            </button>
+            <button class="w-8 h-8 rounded-full bg-[#EDE5F5] flex items-center justify-center hover:bg-[#EDE5F5]/80 transition-colors">
+                <span class="material-symbols-outlined text-base">calendar_month</span>
+            </button>
+        </div>
     </header>
 
     <!-- ========================================== -->
-    <!-- 頂部 Summary Card -->
+    <!-- 🎛️ 三大 Tab 切換 Bar -->
     <!-- ========================================== -->
-    <section class="bg-white rounded-3xl p-5 sm:p-6 mb-6 border border-[#E8E0EF] shadow-[0_4px_20px_rgba(128,100,162,0.05)]">
-        <div class="flex items-center justify-between">
-            <div>
-                <span class="text-[10px] font-extrabold text-[#8064A2] tracking-wider uppercase bg-[#EDE5F5] px-2.5 py-0.5 rounded-full">
-                    PHOTO MEMORIES
-                </span>
-                <h2 class="text-lg sm:text-xl font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] mt-1.5">
-                    我們的成長
-                </h2>
-                <div class="flex items-center gap-3 mt-1.5 text-xs font-bold text-[#81758A]">
-                    <span class="text-[#8064A2] bg-[#FAF8FC] border border-[#E8E0EF] px-2.5 py-0.5 rounded-full">
-                        {{ current_week }} 週
-                    </span>
-                    <span>{{ total_photos_count }} 張回憶</span>
-                </div>
-            </div>
-            <div class="w-12 h-12 rounded-2xl bg-[#EDE5F5] flex items-center justify-center text-[#8064A2] shadow-2xs">
-                <span class="text-2xl">📸</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- 分類 Horizontal Pill Filter -->
-    <!-- ========================================== -->
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6 -mx-1 px-1">
-        <button type="button" onclick="filterPhotos('all', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-[#A98BC7] text-white shadow-2xs">
-            全部
-        </button>
-        <button type="button" onclick="filterPhotos('pregnancy', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            孕期
-        </button>
-        <button type="button" onclick="filterPhotos('prenatal', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            產檢
-        </button>
-        <button type="button" onclick="filterPhotos('baby', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            寶寶
-        </button>
-        <button type="button" onclick="filterPhotos('important', this)" class="photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            重要時刻
-        </button>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 照片 2-Column Grid -->
-    <!-- ========================================== -->
-    {% if has_photos %}
-    <div class="grid grid-cols-2 gap-3.5 sm:gap-5">
-        {% for p in photos %}
-        <div class="photo-card-item group bg-white rounded-3xl overflow-hidden shadow-2xs border border-[#E8E0EF] hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer" data-category="{{ p.category }}" onclick="openPhotoModal('{{ p.photo }}', '{{ p.title }}', '{{ p.date }}', '{{ p.week_label }}', '{{ p.notes }}')">
-            
-            <!-- 圖片容器 (1:1 比例) -->
-            <div class="relative aspect-square bg-[#FAF8FC] overflow-hidden">
-                <img src="{{ p.photo }}" alt="{{ p.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                
-                <!-- 標籤 overlay -->
-                <div class="absolute bottom-2 left-2 bg-black/50 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    {{ p.week_label }}
-                </div>
-
-                <!-- 重要照片 ⭐ 標記 -->
-                {% if p.is_important %}
-                <div class="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/90 shadow-xs flex items-center justify-center text-amber-500 text-xs">
-                    ⭐
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- 照片下方簡短資訊 -->
-            <div class="p-3">
-                <div class="flex items-center justify-between text-[10px] text-[#81758A] font-semibold mb-0.5">
-                    <span>{{ p.date }}</span>
-                    <span class="text-[#8064A2] font-bold">{{ p.type_label }}</span>
-                </div>
-                <h3 class="text-xs sm:text-sm font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] line-clamp-1 group-hover:text-[#8064A2] transition-colors">
-                    {{ p.title }}
-                </h3>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-16 px-6 bg-white rounded-3xl border border-[#E8E0EF] shadow-2xs">
-        <span class="material-symbols-outlined text-5xl text-[#A98BC7]/50 mb-3 block">photo_library</span>
-        <h3 class="text-base font-bold text-[#4A4052] mb-1">還沒有成長照片</h3>
-        <p class="text-xs text-[#81758A] mb-5 max-w-xs mx-auto">
-            把值得記住的時刻收藏下來吧，每次產檢與日常點滴都是最珍貴的禮物！
-        </p>
-        <a href="/pregnancyrecord/add/" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#8064A2] hover:bg-[#6c518d] px-5 py-2.5 rounded-full transition-colors shadow-xs">
-            <span class="material-symbols-outlined text-sm">add_a_photo</span>
-            <span>新增照片</span>
+    <div class="grid grid-cols-3 bg-[#EDE5F5] p-1 rounded-full mb-6 border border-[#E8E0EF] shadow-2xs">
+        <a href="/history-review/" class="py-2 px-3 rounded-full text-xs font-bold text-center transition-all bg-white text-[#4A4052] hover:text-[#8064A2]">
+            時光軸
+        </a>
+        <a href="/history-review/memory-wall/" class="py-2 px-3 rounded-full text-xs font-bold text-center transition-all bg-[#8064A2] text-white shadow-xs">
+            相簿牆
+        </a>
+        <a href="/history-review/baby-growth/" class="py-2 px-3 rounded-full text-xs font-bold text-center transition-all bg-white text-[#4A4052] hover:text-[#8064A2]">
+            紀念冊
         </a>
     </div>
+
+    <!-- ========================================== -->
+    <!-- ✨ 那年那天 (Flashback Highlight Polaroid) -->
+    <!-- ========================================== -->
+    {% if has_flashback %}
+    <section class="bg-gradient-to-br from-[#ffffff] via-[#faf5ff] to-[#f4ebff] rounded-3xl p-5 border border-[#E8E0EF] shadow-[0_6px_20px_rgba(128,100,162,0.06)] relative overflow-hidden mb-7">
+        <div class="flex items-center justify-between mb-3 border-b border-[#E8E0EF]/60 pb-2.5">
+            <span class="text-xs font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans'] flex items-center gap-1">
+                <span>那年那天</span>
+                <span class="text-amber-400">✨</span>
+            </span>
+            <span class="text-[10px] font-bold text-white bg-[#8064A2] px-2.5 py-0.5 rounded-full shadow-2xs">
+                {{ flashback.time_label }}
+            </span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+            <!-- 左側/上方文字說明 -->
+            <div class="flex-1">
+                <span class="text-[11px] font-bold text-[#8064A2] block mb-1 font-mono">
+                    {{ flashback.date_str }}
+                </span>
+                <p class="text-xs text-[#4A4052] font-medium leading-relaxed font-['Be_Vietnam_Pro'] mb-3">
+                    「{{ flashback.note }}」
+                </p>
+                <a href="#photo-section" class="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#8064A2] bg-[#EDE5F5] hover:bg-[#EDE5F5]/80 px-3.5 py-1.5 rounded-full transition-colors">
+                    <span>點擊查看當時影像</span>
+                    <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </a>
+            </div>
+
+            <!-- 右側/下方 拍立得效果傾斜相片 -->
+            {% if flashback.photo %}
+            <div class="relative shrink-0 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+                <div class="bg-white p-2 pb-5 rounded-xl shadow-md border border-[#E8E0EF] w-32 text-center">
+                    <img src="{{ flashback.photo }}" alt="那年那天" class="w-full h-28 object-cover rounded-lg mb-1.5">
+                    <span class="text-[9px] text-[#81758A] font-medium">珍藏記憶 ❤️</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% else %}
+    <!-- 那年那天 Empty State -->
+    <section class="text-center py-7 px-5 bg-white rounded-3xl border border-[#E8E0EF] shadow-2xs mb-7">
+        <span class="text-3xl mb-1 block">🗓️</span>
+        <h3 class="text-xs font-bold text-[#4A4052] mb-1">今天沒有回憶</h3>
+        <p class="text-[11px] text-[#81758A]">也許明年的今天，這裡會有新的故事。</p>
+    </section>
     {% endif %}
 
     <!-- ========================================== -->
-    <!-- 點擊照片 Lightbox Modal -->
+    <!-- 📷 照片依月份分組 (Memory Wall Grid) -->
     <!-- ========================================== -->
-    <div id="photo-lightbox-modal" class="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" onclick="closePhotoModal()">
-        <div class="relative max-w-md w-full bg-white rounded-3xl overflow-hidden shadow-2xl p-4 sm:p-5" onclick="event.stopPropagation()">
-            <button onclick="closePhotoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors z-10 cursor-pointer">
-                <span class="material-symbols-outlined text-lg">close</span>
-            </button>
-            <div class="aspect-square rounded-2xl overflow-hidden bg-[#FAF8FC] mb-3 flex items-center justify-center">
-                <img id="lightbox-img" src="" alt="放大照片" class="w-full h-full object-contain">
+    {% if has_memory_wall %}
+    <section id="photo-section" class="space-y-6">
+        {% for group in memory_wall_groups %}
+        <div class="bg-white rounded-3xl p-4 border border-[#E8E0EF] shadow-2xs">
+            <!-- 月份標頭 -->
+            <div class="flex items-center justify-between mb-3 border-b border-[#E8E0EF]/60 pb-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans']">
+                        {{ group.year_month }}
+                    </span>
+                    <span class="text-[10px] font-bold text-[#8064A2] bg-[#EDE5F5] px-2 py-0.5 rounded-full">
+                        {{ group.stage_label }}
+                    </span>
+                </div>
+                <span class="text-[11px] font-bold text-[#8064A2] hover:underline cursor-pointer">
+                    查看全部 &gt;
+                </span>
             </div>
-            <div class="flex items-center justify-between text-xs text-[#81758A] font-bold mb-1">
-                <span id="lightbox-date"></span>
-                <span id="lightbox-week" class="bg-[#EDE5F5] text-[#8064A2] px-2 py-0.5 rounded-full text-[10px]"></span>
+
+            <!-- 3 欄相片 Grid -->
+            <div class="grid grid-cols-3 gap-2.5">
+                {% for photo in group.photos %}
+                <div class="group flex flex-col bg-[#FAF8FC] rounded-2xl overflow-hidden border border-[#E8E0EF]">
+                    <div class="aspect-square relative overflow-hidden">
+                        <img src="{{ photo.url }}" alt="{{ photo.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="p-1.5 text-center bg-white border-t border-[#E8E0EF]/50">
+                        <span class="block text-[10px] font-bold text-[#4A4052] truncate">{{ photo.title }}</span>
+                        <span class="block text-[9px] text-[#81758A] font-mono mt-0.5">{{ photo.date_str }}</span>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            <h3 id="lightbox-title" class="text-sm sm:text-base font-bold text-[#4A4052] mb-1"></h3>
-            <p id="lightbox-notes" class="text-xs text-[#81758A] leading-relaxed"></p>
         </div>
-    </div>
+        {% endfor %}
+    </section>
+    {% else %}
+    <!-- 相簿牆 Empty State -->
+    <section class="text-center py-12 px-6 bg-white rounded-3xl border border-[#E8E0EF] shadow-2xs">
+        <span class="text-4xl mb-2 block">📸</span>
+        <h3 class="text-sm font-bold text-[#4A4052] mb-1">還沒有留下回憶照片</h3>
+        <p class="text-xs text-[#81758A] mb-4 max-w-xs mx-auto">
+            上傳產檢超音波或寶寶成長相片，開始打造屬於你們的相簿牆。
+        </p>
+        <a href="/pregnancyrecord/add/" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#8064A2] hover:bg-[#6c518d] px-4 py-2 rounded-full transition-colors shadow-xs">
+            <span class="material-symbols-outlined text-sm">add_a_photo</span>
+            <span>上傳照片</span>
+        </a>
+    </section>
+    {% endif %}
 
 </main>
-
-<script>
-    function filterPhotos(category, btn) {
-        document.querySelectorAll('.photo-filter-btn').forEach(b => {
-            b.className = 'photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]';
-        });
-        btn.className = 'photo-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-[#A98BC7] text-white shadow-2xs';
-
-        document.querySelectorAll('.photo-card-item').forEach(card => {
-            if (category === 'all' || card.dataset.category === category || (category === 'important' && card.dataset.category === 'prenatal')) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-
-    function openPhotoModal(src, title, date, week, notes) {
-        const modal = document.getElementById('photo-lightbox-modal');
-        document.getElementById('lightbox-img').src = src;
-        document.getElementById('lightbox-title').textContent = title || '成長照片';
-        document.getElementById('lightbox-date').textContent = date || '';
-        document.getElementById('lightbox-week').textContent = week || '';
-        document.getElementById('lightbox-notes').textContent = notes || '';
-
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-        modal.classList.add('opacity-100', 'pointer-events-auto');
-    }
-
-    function closePhotoModal() {
-        const modal = document.getElementById('photo-lightbox-modal');
-        modal.classList.add('opacity-0', 'pointer-events-none');
-        modal.classList.remove('opacity-100', 'pointer-events-auto');
-    }
-</script>
 {% endblock %}
