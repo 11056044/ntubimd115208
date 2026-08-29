@@ -74,7 +74,6 @@
             <input type="hidden" name="member_id" value="{{ selected_member.familymember_id }}">
             <input type="hidden" id="perm_baby_records" name="perm_baby_records" value="{{ selected_member.permissions.baby_records|default:'view' }}">
             <input type="hidden" id="perm_mom_records" name="perm_mom_records" value="{{ selected_member.permissions.mom_records|default:'view' }}">
-            <input type="hidden" id="perm_helper_list" name="perm_helper_list" value="{{ selected_member.permissions.helper_list|default:'view' }}">
             <input type="hidden" id="perm_growth" name="perm_growth" value="{{ selected_member.permissions.growth|default:'view' }}">
             <input type="hidden" id="perm_care_records" name="perm_care_records" value="{{ selected_member.permissions.care_records|default:'view' }}">
 
@@ -110,8 +109,7 @@
                             小孩紀錄
                         </label>
                         <div class="flex bg-surface-container-low rounded-xl p-1 w-full relative" data-feature="baby_records">
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'off' %}active{% endif %}" data-value="off">關閉</button>
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'view' %}active{% endif %}" data-value="view">檢視</button>
+                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current != 'edit' %}active{% endif %}" data-value="view">檢視</button>
                             <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'edit' %}active{% endif %}" data-value="edit">修改</button>
                         </div>
                     </div>
@@ -125,29 +123,13 @@
                             媽媽紀錄
                         </label>
                         <div class="flex bg-surface-container-low rounded-xl p-1 w-full relative" data-feature="mom_records">
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'off' %}active{% endif %}" data-value="off">關閉</button>
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'view' %}active{% endif %}" data-value="view">檢視</button>
+                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current != 'edit' %}active{% endif %}" data-value="view">檢視</button>
                             <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'edit' %}active{% endif %}" data-value="edit">修改</button>
                         </div>
                     </div>
                     {% endwith %}
 
-                    <!-- Feature 3: 協助者清單 -->
-                    {% with current=selected_member.permissions.helper_list|default:"view" %}
-                    <div class="flex flex-col gap-3">
-                        <label class="text-sm font-bold text-on-surface flex items-center gap-2">
-                            <span class="material-symbols-outlined text-on-surface-variant text-[18px]">group</span>
-                            協助者清單
-                        </label>
-                        <div class="flex bg-surface-container-low rounded-xl p-1 w-full relative" data-feature="helper_list">
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'off' %}active{% endif %}" data-value="off">關閉</button>
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'view' %}active{% endif %}" data-value="view">檢視</button>
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'edit' %}active{% endif %}" data-value="edit">修改</button>
-                        </div>
-                    </div>
-                    {% endwith %}
-
-                    <!-- Feature 4: 成長趨勢 -->
+                    <!-- Feature 3: 成長趨勢 -->
                     {% with current=selected_member.permissions.growth|default:"view" %}
                     <div class="flex flex-col gap-3">
                         <label class="text-sm font-bold text-on-surface flex items-center gap-2">
@@ -155,14 +137,13 @@
                             成長趨勢
                         </label>
                         <div class="flex bg-surface-container-low rounded-xl p-1 w-full relative" data-feature="growth">
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'off' %}active{% endif %}" data-value="off">關閉</button>
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'view' %}active{% endif %}" data-value="view">檢視</button>
+                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current != 'edit' %}active{% endif %}" data-value="view">檢視</button>
                             <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'edit' %}active{% endif %}" data-value="edit">修改</button>
                         </div>
                     </div>
                     {% endwith %}
 
-                    <!-- Feature 5: 照護提醒 -->
+                    <!-- Feature 4: 照護提醒 -->
                     {% with current=selected_member.permissions.care_records|default:"view" %}
                     <div class="flex flex-col gap-3">
                         <label class="text-sm font-bold text-on-surface flex items-center gap-2">
@@ -170,13 +151,13 @@
                             照護提醒
                         </label>
                         <div class="flex bg-surface-container-low rounded-xl p-1 w-full relative" data-feature="care_records">
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'off' %}active{% endif %}" data-value="off">關閉</button>
-                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'view' %}active{% endif %}" data-value="view">檢視</button>
+                            <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current != 'edit' %}active{% endif %}" data-value="view">檢視</button>
                             <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current == 'edit' %}active{% endif %}" data-value="edit">修改</button>
                         </div>
                     </div>
                     {% endwith %}
                 </div>
+
             </section>
 
             <!-- Submit Button -->

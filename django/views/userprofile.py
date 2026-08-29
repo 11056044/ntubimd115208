@@ -153,12 +153,10 @@ def userprofile(request):
         )
         _annotate_family_roles(family_members)
         is_case_owner = bool(case and case.user_id == current_user.user_id)
-        if case.user_id == current_user.user_id:
-            can_manage_helpers = True
+        can_manage_helpers = is_case_owner
+        if is_case_owner:
             pending_count = len(join_request.get_pending_requests(case.pregnancycase_id))
-        else:
-            membership = FamilyMember.objects.filter(pregnancycase=case, user=current_user).first()
-            can_manage_helpers = baby_utils.has_permission(membership, 'helper_list', 'view')
+
 
     return render(request, 'user/userprofile.html', {
         'current_user': current_user,
@@ -218,12 +216,10 @@ def join_family(request):
             .order_by('join_time')
         )
         _annotate_family_roles(family_members)
-        if active_case.user_id == current_user.user_id:
-            can_manage_helpers = True
+        can_manage_helpers = (active_case.user_id == current_user.user_id)
+        if can_manage_helpers:
             pending_count = len(join_request.get_pending_requests(active_case.pregnancycase_id))
-        else:
-            active_membership = FamilyMember.objects.filter(pregnancycase=active_case, user=current_user).first()
-            can_manage_helpers = baby_utils.has_permission(active_membership, 'helper_list', 'view')
+
 
     return render(request, 'user/userprofile.html', {
         'current_user': current_user,

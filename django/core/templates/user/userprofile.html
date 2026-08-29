@@ -94,8 +94,12 @@
                 {% for member in family_members %}
                 <div class="flex items-center justify-between p-4 bg-surface-container-low/50 hover:bg-surface-container-low rounded-2xl transition-colors">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-lg">
+                        <div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-lg overflow-hidden shrink-0">
+                            {% if member.user.avatar %}
+                            <img src="{{ member.user.avatar }}" alt="{{ member.user.name }}" class="w-full h-full object-cover">
+                            {% else %}
                             <span class="material-symbols-outlined text-[22px]">face</span>
+                            {% endif %}
                         </div>
                         <span class="text-sm font-bold text-on-surface">{{ member.user.name }}</span>
                     </div>
@@ -160,4 +164,38 @@
             </form>
         </section>
     </main>
+
+<!-- 功能權限不足 Toast -->
+<div id="perm-error-toast"
+     class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 bg-on-surface text-surface text-sm font-medium px-5 py-3.5 rounded-2xl shadow-xl opacity-0 translate-y-4 transition-all duration-300 pointer-events-none whitespace-nowrap">
+    <span class="material-symbols-outlined text-[18px] text-yellow-300">lock</span>
+    <span id="perm-error-msg">您沒有此功能的存取權限</span>
+</div>
+
+<script>
+(function () {
+    var permErrors = {
+        'mom_records': '您沒有養育者記錄的功能權限'
+    };
+    var params = new URLSearchParams(window.location.search);
+    var errKey = params.get('perm_error');
+    if (errKey && permErrors[errKey]) {
+        var toast = document.getElementById('perm-error-toast');
+        var msg = document.getElementById('perm-error-msg');
+        if (toast && msg) {
+            msg.textContent = permErrors[errKey];
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(function () {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 2800);
+        }
+        // 清除 URL 上的 perm_error 參數，避免重新整理重複顯示
+        var clean = window.location.pathname;
+        window.history.replaceState({}, '', clean);
+    }
+})();
+</script>
+
 {% endblock %}

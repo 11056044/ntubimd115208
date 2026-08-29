@@ -134,7 +134,7 @@ def pregnancyrecord(request):
     if pregnancy_case and current_user and pregnancy_case.user_id != current_user.user_id:
         membership = FamilyMember.objects.filter(pregnancycase=pregnancy_case, user=current_user).first()
         if not baby_utils.has_permission(membership, 'mom_records', 'view'):
-            return redirect('profile')
+            return redirect('/userprofile/?perm_error=mom_records')
 
     raw = request.GET.get('date')
 
@@ -390,8 +390,7 @@ def pregnancyrecord_add(request):
     if pregnancy_case and pregnancy_case.user_id != current_user.user_id:
         membership = FamilyMember.objects.filter(pregnancycase=pregnancy_case, user=current_user).first()
         if not baby_utils.has_permission(membership, 'mom_records', 'view'):
-            return redirect('profile')
-        
+            return redirect('/userprofile/?perm_error=mom_records')
     def _can_edit_records():
         if not pregnancy_case:
             return True
