@@ -9,10 +9,10 @@
     <!-- Header Section -->
     <header id="edit-profile-header" class="sticky top-0 z-50 bg-[#f7f6f3]/70 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full transition-all duration-500 md:px-8 lg:px-16 xl:px-32 2xl:px-64">
         <div class="flex items-center gap-3">
-            <button onclick="window.history.back()" class="p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200 rounded-full cursor-pointer">
-                <span class="material-symbols-outlined text-primary">arrow_back</span>
-            </button>
-            <h1 class="font-headline font-semibold tracking-tight text-lg text-primary">修改嬰幼兒資訊</h1>
+            <a href="/babyinformation/" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
+                <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;">arrow_back</span>
+                <span class="tfont-headline font-extrabold text-2xl text-primary tracking-tight">修改嬰幼兒資訊</span>
+            </a>
         </div>
     </header>
 
@@ -55,7 +55,7 @@
                                     class="w-full bg-surface-container-low border-none rounded-xl pl-11 pr-3 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
                         </div>
                     </div>
-                    
+
 
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">最後一次月經時間 (LMP)</label>
@@ -72,16 +72,16 @@
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40">auto_awesome</span>
                             <input type="text" name="birth_weeks" value="{{ birth_weeks_value }}" readonly
-                                   class="w-full bg-surface-container-low/40 border-none rounded-xl pl-11 pr-4 py-3.5 text-on-surface-variant/60 focus:outline-none transition-all text-sm outline-none font-medium cursor-not-allowed select-none" 
+                                   class="w-full bg-surface-container-low/40 border-none rounded-xl pl-11 pr-4 py-3.5 text-on-surface-variant/60 focus:outline-none transition-all text-sm outline-none font-medium cursor-not-allowed select-none"
                                    placeholder="系統自動計算" />
                         </div>
-                      
+
                     </div>
 
 
 
 
-                
+
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1 flex justify-between items-center">
                             <span>加入碼 (分享給其他照顧者)</span>
@@ -162,7 +162,7 @@
             </button>
         </form>
     </main>
-    
+
 
 
 

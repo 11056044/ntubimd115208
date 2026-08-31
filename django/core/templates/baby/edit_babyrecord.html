@@ -8,10 +8,11 @@
 <div class="bg-surface text-on-surface min-h-screen">
     <header class="bg-surface/70 backdrop-blur-md px-4 py-4 w-full transition-all duration-500 md:px-8 lg:px-16 xl:px-32 2xl:px-64">
         <div class="flex flex-col items-start gap-2">
-            <button onclick="window.history.back()" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
+            <a href="/babyinformation/" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
                 <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;">arrow_back</span>
                 <span class="text-lg font-bold text-primary">修改成長紀錄</span>
-            </button>
+            </a>
+        </div>
         </div>
     </header>
 
@@ -22,31 +23,32 @@
             <div class="rounded-3xl bg-red-50 border border-red-200 text-red-700 p-4">{{ error }}</div>
             {% endif %}
 
-            <div class="bg-surface-container-lowest border-2 border-dashed border-primary-container rounded-[2rem] p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-primary/5 transition-all aspect-[4/3] shadow-sm">
-                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <div id="photo-card-wrapper" class="relative bg-surface-container-lowest border-2 border-dashed border-primary-container rounded-[2rem] p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-primary/5 transition-all aspect-[4/3] md:aspect-video shadow-sm">
+                <img id="photo-preview-image" src="{{ record.photo|default:'' }}" class="{% if record.photo %}absolute rounded-[2rem] inset-0 w-full h-full object-cover{% else %}hidden absolute rounded-[2rem] inset-0 w-full h-full object-cover{% endif %}" alt="預覽圖片" />
+                <div id="photo-card-content" class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     <span class="material-symbols-outlined text-2xl">photo_camera</span>
                 </div>
-                <p class="text-sm font-bold text-on-surface-variant">
+                <p id="photo-card-text" class="text-sm font-bold text-on-surface-variant">
                     {% if record.photo %}已附帶現有相片（點擊可重選修改）{% else %}點擊上傳成長照片{% endif %}
                 </p>
-                <input name="photo" type="file" accept="image/*" class="mt-4 w-full rounded-2xl border-none bg-surface-container-low px-4 py-3 text-on-surface" />
+                <input id="photo-input" name="photo" type="file" accept="image/*" class="hidden" />
             </div>
-            
+
             <div class="h-8"></div>
 
             <div>
-                <div class="bg-surface-container-lowest rounded-3xl p-6 flex items-center gap-4 shadow-sm border">
+                <div id="date-card-wrapper" class="bg-surface-container-lowest rounded-3xl p-6 flex items-center gap-4 shadow-sm border cursor-pointer">
                     <div class="w-12 h-12 bg-[#d6beff4d] rounded-lg flex flex-col items-center justify-center text-on-primary-container">
-                        <span class="text-[10px] font-bold">{{ selected_month_abbr }}</span>
-                        <span class="text-xl font-headline font-black">{{ selected_day }}</span>
+                        <span id="date-badge-month" class="text-[10px] font-bold">{{ selected_month_abbr }}</span>
+                        <span id="date-badge-day" class="text-xl font-headline font-black">{{ selected_day }}</span>
                     </div>
                     <div class="flex-1">
                         <p class="text-sm font-bold mb-1">紀錄日期</p>
-                        <input name="date" class="text-xs text-on-surface-variant bg-transparent border-none p-0 w-full cursor-pointer" type="date" value="{{ record.date|date:'Y-m-d' }}" max="{{ today_iso }}" min="{{ record.baby.birthdaytime|date:'Y-m-d' }}" />
+                        <input id="check-date-input" name="date" class="text-xs text-on-surface-variant bg-transparent border-none p-0 w-full cursor-pointer" type="date" value="{{ record.date|date:'Y-m-d' }}" max="{{ today_iso }}" min="{{ record.baby.birthdaytime|date:'Y-m-d' }}" />
                     </div>
                 </div>
             </div>
-                   
+
             <div class="h-8"></div>
 
             <div class="space-y-3">
@@ -76,7 +78,7 @@
                 <input id="milestones" type="hidden" name="milestones" value="{{ selected_milestones }}" />
                 <div class="flex flex-wrap gap-3 milestone-buttons">
                     {% for ms in all_milestones %}
-                    <button type="button" class="milestone-item px-6 py-3 rounded-full text-sm font-medium transition-all cursor-pointer 
+                    <button type="button" class="milestone-item px-6 py-3 rounded-full text-sm font-medium transition-all cursor-pointer
                         {% if ms.growthrecord in record.milestones %}bg-[#d6beff80] text-[#65518a]{% else %}bg-surface-container-low text-on-surface-variant{% endif %}">
                         {{ ms.growthrecord }}
                     </button>
@@ -99,6 +101,61 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const dateCardWrapper = document.getElementById('date-card-wrapper');
+        const checkDateInput = document.getElementById('check-date-input');
+        const dateBadgeMonth = document.getElementById('date-badge-month');
+        const dateBadgeDay = document.getElementById('date-badge-day');
+        const monthAbbr = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+        if (checkDateInput) {
+            checkDateInput.addEventListener('change', () => {
+                const parts = checkDateInput.value.split('-');
+                if (parts.length === 3 && dateBadgeMonth && dateBadgeDay) {
+                    dateBadgeMonth.textContent = monthAbbr[Number(parts[1])];
+                    dateBadgeDay.textContent = Number(parts[2]);
+                }
+            });
+        }
+
+        if (dateCardWrapper && checkDateInput) {
+            dateCardWrapper.addEventListener('click', (event) => {
+                if (event.target === checkDateInput) {
+                    return;
+                }
+                if (typeof checkDateInput.showPicker === 'function') {
+                    checkDateInput.showPicker();
+                } else {
+                    checkDateInput.focus();
+                    checkDateInput.click();
+                }
+            });
+        }
+
+        const photoInput = document.getElementById('photo-input');
+        const photoPreviewImage = document.getElementById('photo-preview-image');
+        const photoCardWrapper = document.getElementById('photo-card-wrapper');
+        const photoCardContent = document.getElementById('photo-card-content');
+        const photoCardText = document.getElementById('photo-card-text');
+
+        if (photoInput && photoPreviewImage && photoCardWrapper && photoCardContent && photoCardText) {
+            photoCardWrapper.addEventListener('click', () => photoInput.click());
+            photoInput.addEventListener('change', () => {
+                const file = photoInput.files && photoInput.files[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.addEventListener('load', (event) => {
+                    photoPreviewImage.src = event.target.result;
+                    photoPreviewImage.classList.remove('hidden');
+                    photoCardContent.classList.add('hidden');
+                    photoCardText.textContent = '已選取新照片';
+                });
+                reader.readAsDataURL(file);
+            });
+        }
+
         // 里程碑按鈕點擊
         const milestonesInput = document.getElementById('milestones');
         const buttons = document.querySelectorAll('.milestone-item');
@@ -108,7 +165,7 @@
                 button.classList.toggle('text-[#65518a]');
                 button.classList.toggle('bg-surface-container-low');
                 button.classList.toggle('text-on-surface-variant');
-                
+
                 const selected = Array.from(buttons)
                     .filter(btn => btn.classList.contains('bg-[#d6beff80]'))
                     .map(btn => btn.textContent.trim());
