@@ -31,11 +31,13 @@
 
     // 💡 對照 Django urls.py 的精準路徑配對器
     const navMatchers = {
-        // 首頁功能
+        // 首頁功能 (包含歷史回顧，進入後維持首頁 Active)
         home: (location) => (
             location.pathname === '/' ||
             location.pathname.startsWith('/add_care_reminder/') ||
-            location.pathname.startsWith('/set_care_status/')
+            location.pathname.startsWith('/set_care_status/') ||
+            location.pathname.startsWith('/history-review/') ||
+            location.pathname.startsWith('/history_review/')
         ),
 
         // 孕期紀錄 & 胎數管理
@@ -47,15 +49,13 @@
             location.pathname.startsWith('/edit_pregnancy_case/')
         ),
 
-        // 嬰幼兒主頁、基本資料、生長紀錄、圖表、歷史回顧
+        // 嬰幼兒主頁、基本資料、生長紀錄、圖表
         growth: (location) => (
             location.pathname.startsWith('/babyinformation/') ||
             location.pathname.startsWith('/babygrowthmap/') ||
             location.pathname.startsWith('/add_baby_information/') ||
             location.pathname.startsWith('/edit_baby_information/') ||
             location.pathname.startsWith('/babyrecord/') || // 🔥 完美涵蓋 /babyrecord/add/, /edit/, /delete/
-            location.pathname.startsWith('/history-review/') ||
-            location.pathname.startsWith('/history_review/') ||
             location.pathname.startsWith('/social_sharing_card/') // 圖文分享卡也屬於成長分頁
         ),
 

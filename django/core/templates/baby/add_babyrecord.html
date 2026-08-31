@@ -9,10 +9,10 @@
 <div class="bg-surface text-on-surface min-h-screen">
     <header class="bg-surface/70 backdrop-blur-md px-4 py-4 w-full transition-all duration-500 md:px-8 lg:px-16 xl:px-32 2xl:px-64">
         <div class="flex flex-col items-start gap-2">
-            <button onclick="window.history.back()" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
+            <a href="/babyinformation/" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
                 <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;">arrow_back</span>
                 <span class="text-lg font-bold text-primary">新增成長紀錄</span>
-            </button>
+            </a>
         </div>
     </header>
 
@@ -20,17 +20,19 @@
         <form method="post" action="{% url 'add_baby_record' %}" enctype="multipart/form-data">
             {% csrf_token %}
             {% if error %}
-            <div class="rounded-3xl bg-red-50 border border-red-200 text-red-700 p-4">{{ error }}</div>
+            <div class="rounded-3xl bg-red-50 border border-re1d-200 text-red-700 p-4">{{ error }}</div>
             {% endif %}
 
-            <div class="bg-surface-container-lowest border-2 border-dashed border-primary-container rounded-[2rem] p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-primary/5 transition-all aspect-[4/3] md:aspect-video shadow-sm">
-                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <span class="material-symbols-outlined text-2xl">photo_camera</span>
+            <div id="photo-card-wrapper" class="relative bg-surface-container-lowest border-2 border-dashed border-primary-container rounded-[2rem] p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-primary/5 transition-all aspect-[4/3] md:aspect-video shadow-sm">
+                <img id="photo-preview-image" src="{{ photo_url|default:'' }}" class="{% if photo_url %}absolute rounded-[2rem] inset-0 w-full h-full object-cover{% else %}hidden absolute rounded-[2rem] inset-0 w-full h-full object-cover{% endif %}" alt="預覽圖片" />
+                <div id="photo-card-overlay" class=""></div>
+                <div id="photo-card-content"  class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <span id="photo-placeholder-icon" class="material-symbols-outlined text-2xl">photo_camera</span>
                 </div>
-                <p class="text-sm font-bold text-on-surface-variant">點擊上傳成長照片</p>
-                <input name="photo" type="file" accept="image/*" class="mt-4 w-full rounded-2xl border-none bg-surface-container-low px-4 py-3 text-on-surface" />
+                <p id="photo-card-text" class="text-sm font-bold text-on-surface-variant">{% if form_photo_url %}更換成長照片{% else %}點擊上傳成長照片{% endif %}</p>
+                <input id="photo-input" name="photo" type="file" accept="image/*" class="hidden"  />
             </div>
-            
+
             <div class="h-8"></div>
 
             <div>
@@ -45,7 +47,7 @@
                     </div>
                 </div>
             </div>
-                   
+
             <div class="h-8"></div>
 
             <div class="space-y-3">
@@ -100,10 +102,19 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const dateCardWrapper = document.getElementById('date-card-wrapper');
         const checkDateInput  = document.getElementById('check-date-input');
         const dateBadgeMonth  = document.getElementById('date-badge-month');
         const dateBadgeDay    = document.getElementById('date-badge-day');
         const MONTH_ABBR = ['','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const photoInput = document.getElementById('photo-input');
+        const photoPreviewImage = document.getElementById('photo-preview-image');
+        const photoPlaceholderIcon = document.getElementById('photo-placeholder-icon');
+        const photoCardWrapper = document.getElementById('photo-card-wrapper');
+        const photoCardOverlay = document.getElementById('photo-card-overlay');
+        const photoCardContent = document.getElementById('photo-card-content');
+        const photoCardText = document.getElementById('photo-card-text');
+
 
         if (checkDateInput) {
             checkDateInput.addEventListener('change', () => {
@@ -115,8 +126,71 @@
                 // 自動刷新
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('date', checkDateInput.value);
-                window.location.search = urlParams.toString();
+                window.location.assign(`${window.location.pathname}?${urlParams.toString()}`);
             });
+        }
+        if (dateCardWrapper && checkDateInput) {
+            dateCardWrapper.addEventListener('click', (event) => {
+                if (event.target === checkDateInput) {
+                    return;
+                }
+                if (typeof checkDateInput.showPicker === 'function') {
+                    checkDateInput.showPicker();
+                } else {
+                    checkDateInput.focus();
+                    checkDateInput.click();
+                }
+            });
+        }
+
+        if (photoInput && photoPreviewImage && photoPlaceholderIcon && photoCardWrapper && photoCardText && photoCardOverlay && photoCardContent) {
+            const setPhotoSelectedState = (hasFile) => {
+                if (hasFile) {
+                    photoCardWrapper.classList.add('border-primary', 'bg-primary-container/10');
+                    photoCardOverlay.classList.add('hidden');
+                    photoCardContent.classList.add('hidden');
+                } else {
+                    photoCardWrapper.classList.remove('border-primary', 'bg-primary-container/10');
+                    photoCardOverlay.classList.remove('hidden');
+                    photoCardContent.classList.remove('hidden');
+                }
+            };
+
+            const openPhotoPicker = () => {
+                if (typeof photoInput.showPicker === 'function') {
+                    photoInput.showPicker();
+                } else {
+                    photoInput.click();
+                }
+            };
+
+            photoCardWrapper.addEventListener('click', openPhotoPicker);
+
+            photoInput.addEventListener('change', () => {
+                const file = photoInput.files && photoInput.files[0];
+                if (!file) {
+                    photoPreviewImage.src = '';
+                    photoPreviewImage.classList.add('hidden');
+                    photoPlaceholderIcon.classList.remove('hidden');
+                    setPhotoSelectedState(false);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    photoPreviewImage.src = event.target?.result || '';
+                    photoPreviewImage.classList.remove('hidden');
+                    photoPlaceholderIcon.classList.add('hidden');
+                    setPhotoSelectedState(true);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (photoPreviewImage.getAttribute('src')) {
+                photoPreviewImage.classList.remove('hidden');
+                photoPlaceholderIcon.classList.add('hidden');
+                setPhotoSelectedState(true);
+            }
         }
 
         const milestonesInput = document.getElementById('milestones');
@@ -128,7 +202,7 @@
                 button.classList.toggle('text-[#65518a]', !isActive);
                 button.classList.toggle('bg-surface-container-low', isActive);
                 button.classList.toggle('text-on-surface-variant', isActive);
-                
+
                 const selected = Array.from(buttons)
                     .filter(btn => btn.classList.contains('bg-[#d6beff80]'))
                     .map(btn => btn.textContent.trim());

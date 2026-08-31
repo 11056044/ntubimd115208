@@ -5,17 +5,15 @@
 <link rel="stylesheet" href="{% static 'css/baby/add_baby_profile.css' %}">
 {% endblock %}
 {% block content %}
-<div class="bg-surface text-on-surface min-h-screen pb-32">
-
-    <!-- Header -->
-    <header class="bg-surface/70 backdrop-blur-md px-4 py-4 w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64">
-        <button onclick="window.history.back()"
-                class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200"
-                aria-label="返回">
-            <span class="material-symbols-outlined text-primary text-[28px]"
-                  style="font-variation-settings:'FILL' 1,'wght' 700,'GRAD' 0,'opsz' 24;">arrow_back</span>
-            <span class="text-lg font-bold text-primary">編輯嬰幼兒資料</span>
-        </button>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+    <!-- Header Section -->
+    <header id="edit-profile-header" class="sticky top-0 z-50 bg-[#f7f6f3]/70 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full transition-all duration-500 md:px-8 lg:px-16 xl:px-32 2xl:px-64">
+        <div class="flex items-center gap-3">
+            <a href="/babyinformation/" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
+                <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;">arrow_back</span>
+                <span class="tfont-headline font-extrabold text-2xl text-primary tracking-tight">修改嬰幼兒資訊</span>
+            </a>
+        </div>
     </header>
 
     <main class="pt-2 px-4 mx-auto max-w-md md:max-w-none w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64 space-y-5">
@@ -69,7 +67,6 @@
                                           {% if birth_locked %}bg-surface-container-low/40 text-on-surface-variant/60 cursor-not-allowed{% else %}bg-surface-container-low text-on-surface focus:ring-2 focus:ring-primary/30{% endif %}" />
                         </div>
                     </div>
-
                     <!-- LMP（唯讀） -->
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">最後一次月經 (LMP)</label>
@@ -86,14 +83,15 @@
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-[20px]">auto_awesome</span>
                             <input type="text" name="birth_weeks" value="{{ birth_weeks_value }}" readonly
-                                   placeholder="系統自動計算"
-                                   class="w-full bg-surface-container-low/40 border-none rounded-xl pl-11 pr-4 py-3.5 text-on-surface-variant/60 text-sm outline-none font-medium cursor-not-allowed select-none" />
+                                   class="w-full bg-surface-container-low/40 border-none rounded-xl pl-11 pr-4 py-3.5 text-on-surface-variant/60 focus:outline-none transition-all text-sm outline-none font-medium cursor-not-allowed select-none"
+                                   placeholder="系統自動計算" />
                         </div>
-                    </div>
 
-                    <!-- 加入碼 -->
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">加入碼（分享給照顧者）</label>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1 flex justify-between items-center">
+                            <span>加入碼 (分享給其他照顧者)</span>
+                        </label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-[20px]">vpn_key</span>
                             <input type="text" id="join-code-display" name="join_code" value="{{ join_code }}" readonly
@@ -230,7 +228,6 @@
             </button>
         </form>
     </main>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -269,7 +266,6 @@ document.addEventListener('DOMContentLoaded', function () {
         birthdayInput.addEventListener('change', function() { clampToNow(); calcBirthWeeks(); });
         birthdayInput.addEventListener('input',  function() { clampToNow(); calcBirthWeeks(); });
     }
-
     // 複製加入碼
     var copyBtn   = document.getElementById('copy-join-code-btn');
     var codeInput = document.getElementById('join-code-display');
