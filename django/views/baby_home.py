@@ -159,11 +159,8 @@ def baby(request):
         membership = FamilyMember.objects.filter(
             pregnancycase=active_baby.pregnancycase, user=user
         ).first()
-
-        if not baby_utils.has_permission(membership, 'baby_records', 'view'):
-            return redirect('profile')
-
         can_edit_baby = baby_utils.has_permission(membership, 'baby_records', 'edit')
+
 
     records = (
         list(BabyRecord.objects.filter(baby=active_baby).order_by('-date'))

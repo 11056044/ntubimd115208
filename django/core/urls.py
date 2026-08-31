@@ -291,6 +291,11 @@ urlpatterns = [
         name='history_phase_review'
     ),
     path(
+        'history-review/share-card/',
+        social_sharing_card.social_sharing_card_view,
+        name='history_share_card'
+    ),
+    path(
         'history_review/',
         history_review.history_review,
         name='history_review_alias'

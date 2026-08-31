@@ -7,10 +7,10 @@
 {% block content %}
     <main class="pt-10 px-4 mx-auto max-w-md md:max-w-none w-full transition-all duration-500 ease-in-out md:px-8 lg:px-16 xl:px-32 2xl:px-64 pb-20 mb-10 md:mb-12 space-y-8">
         <!-- Header Text -->
-                      
+
         <section class="space-y-1">
             <h1 class="text-4xl font-extrabold text-primary tracking-tight">嬰幼兒紀錄</h1>
-            <p class="text-on-surface-variant font-medium">陪伴嬰幼兒從出生到三歲的成長點滴</p>
+            <p class="text-on-surface-variant font-medium">嬰幼兒從出生到三歲的成長點滴</p>
         </section>
         <!-- Component 1: Compact Child Info Summary -->
         <section class="bg-surface-container-lowest rounded-xl p-6 shadow-sm relative overflow-hidden">
@@ -198,12 +198,21 @@
                                 <h4 class="text-on-surface font-bold text-base">這一天沒有紀錄</h4>
                                 <p class="text-on-surface-variant text-xs mt-1">為這天新增一筆成長紀錄吧！</p>
                             </div>
+                            {% if can_edit_baby %}
                             <button onclick="navigateToAddRecord('{% url 'add_baby_record' %}?date={{ selected_date_iso }}', '{{ selected_date_iso }}')"
                                     class="mt-1 bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md shadow-primary/20 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all" type="button">
                                 <span class="material-symbols-outlined text-sm">add</span>
                                 新增紀錄
                             </button>
+                            {% else %}
+                            <button onclick="showNoPermissionToast()"
+                                    class="mt-1 bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 cursor-pointer" type="button">
+                                <span class="material-symbols-outlined text-sm">lock</span>
+                                新增紀錄
+                            </button>
+                            {% endif %}
                         </div>
+
                         {% endif %}
                         {% endif %}
                     </div>
@@ -535,5 +544,26 @@
             renderPickerGrid();
         });
     });
+
+    // ── 無編輯權限 toast 通知 ──
+    function showNoPermissionToast() {
+        var toast = document.getElementById('no-perm-toast');
+        if (!toast) return;
+        toast.classList.remove('opacity-0', 'translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(function() {
+            toast.classList.add('opacity-0', 'translate-y-4');
+            toast.classList.remove('opacity-100', 'translate-y-0');
+        }, 2800);
+    }
 </script>
+
+<!-- 無編輯權限 Toast -->
+<div id="no-perm-toast"
+     class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 bg-on-surface text-surface text-sm font-medium px-5 py-3.5 rounded-2xl shadow-xl opacity-0 translate-y-4 transition-all duration-300 pointer-events-none whitespace-nowrap">
+    <span class="material-symbols-outlined text-[18px] text-yellow-300">lock</span>
+    您沒有編輯權限，無法新增紀錄
+</div>
+
 {% endblock %}

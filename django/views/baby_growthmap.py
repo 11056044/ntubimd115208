@@ -12,10 +12,5 @@ def baby_growthmap(request):
 
     baby = baby_utils.get_active_baby(request)
 
-    if baby and baby.pregnancycase and baby.pregnancycase.user_id != user.user_id:
-        membership = FamilyMember.objects.filter(pregnancycase=baby.pregnancycase, user=user).first()
-        if not baby_utils.has_permission(membership, 'growth', 'view'):
-            return redirect('profile')
-
     context = baby_utils.build_growth_timeline_context(baby)
     return render(request, "baby/baby_growthmap.html", context)

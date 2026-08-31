@@ -1,161 +1,170 @@
 {% extends 'base/base.html' %}
 {% load static %}
-{% block title %}成長時間軸 - 歷史回顧{% endblock %}
+{% block title %}每日成長軌跡 - CoLoGrowth{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/history.css' %}">
 
-<main class="mx-auto px-4 sm:px-6 pt-5 pb-36 max-w-md md:max-w-3xl lg:max-w-4xl w-full transition-all duration-300">
-    
-    <!-- ========================================== -->
-    <!-- 共同 Header -->
-    <!-- ========================================== -->
-    <div class="flex items-center justify-between mb-4">
-        <button onclick="window.location.href='/history-review/{% if active_selection_query %}?{{ active_selection_query }}{% endif %}'" class="flex items-center gap-1.5 text-xs font-bold text-[#8064A2] bg-[#EDE5F5] hover:bg-[#A98BC7]/20 px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer" type="button">
-            <span class="material-symbols-outlined text-base">arrow_back</span>
-            <span>返回</span>
-        </button>
-        <span class="text-[11px] font-bold text-[#81758A] bg-white border border-[#E8E0EF] px-3 py-1 rounded-full shadow-2xs">
-            📅 時間軸
-        </span>
-    </div>
+<main class="mx-auto px-4 pt-5 pb-32 max-w-md w-full transition-all duration-300">
 
-    <header class="mb-5">
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans'] tracking-tight">
-            成長時間軸
-        </h1>
-        <p class="text-xs sm:text-sm font-medium text-[#81758A] font-['Be_Vietnam_Pro'] mt-1">
-            「記錄我們一起走過的每個階段」
-        </p>
+    <!-- ========================================== -->
+    <!-- 📖 頁面 Header & 右上 Icon -->
+    <!-- ========================================== -->
+    <header class="flex items-center justify-between mb-5">
+        <div>
+            <h1 class="text-2xl font-extrabold text-[#65518a] font-['Plus_Jakarta_Sans'] tracking-tight mb-0.5">
+                每日成長軌跡
+            </h1>
+            <p class="text-xs text-[#81758A] font-medium font-['Be_Vietnam_Pro']">
+                完整記錄孕期到育兒的重要時刻
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 text-[#8064A2]">
+            <button class="w-8 h-8 rounded-full bg-[#EDE5F5] flex items-center justify-center hover:bg-[#EDE5F5]/80 transition-colors">
+                <span class="material-symbols-outlined text-base">search</span>
+            </button>
+            <button class="w-8 h-8 rounded-full bg-[#EDE5F5] flex items-center justify-center hover:bg-[#EDE5F5]/80 transition-colors">
+                <span class="material-symbols-outlined text-base">calendar_month</span>
+            </button>
+        </div>
     </header>
 
     <!-- ========================================== -->
-    <!-- 頂部水平篩選 (Horizontal Pill Filters) -->
+    <!-- 🎛️ 三大 Tab 切換 Bar -->
     <!-- ========================================== -->
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6 -mx-1 px-1">
-        <button type="button" onclick="filterTimeline('all', this)" class="timeline-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-[#A98BC7] text-white shadow-2xs">
-            全部
-        </button>
-        <button type="button" onclick="filterTimeline('pregnancy', this)" class="timeline-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            孕期
-        </button>
-        <button type="button" onclick="filterTimeline('prenatal', this)" class="timeline-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            產檢
-        </button>
-        <button type="button" onclick="filterTimeline('baby', this)" class="timeline-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            成長
-        </button>
-        <button type="button" onclick="filterTimeline('important', this)" class="timeline-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]">
-            重要
-        </button>
+    <div class="grid grid-cols-3 bg-[#EDE5F5] p-1 rounded-full mb-6 border border-[#E8E0EF] shadow-2xs">
+        <a href="/history-review/" class="py-2 px-3 rounded-full text-xs font-bold text-center transition-all bg-[#8064A2] text-white shadow-xs">
+            時光軸
+        </a>
+        <a href="/history-review/memory-wall/" class="py-2 px-3 rounded-full text-xs font-bold text-center transition-all bg-white text-[#4A4052] hover:text-[#8064A2]">
+            相簿牆
+        </a>
+        <a href="/history-review/baby-growth/" class="py-2 px-3 rounded-full text-xs font-bold text-center transition-all bg-white text-[#4A4052] hover:text-[#8064A2]">
+            紀念冊
+        </a>
     </div>
 
     <!-- ========================================== -->
-    <!-- Timeline (時間由新到舊排列) -->
+    <!-- 🧭 成長階段導覽 (孕早期 -> 孕中期 -> 周歲) -->
     <!-- ========================================== -->
-    {% if has_records %}
-    <div class="relative pl-7 sm:pl-9 space-y-6">
-        <!-- 垂直連接線 -->
-        <div class="history-timeline-line"></div>
-
-        <!-- 年份標籤 -->
-        <div class="inline-block bg-[#EDE5F5] text-[#8064A2] text-xs font-extrabold px-3 py-1 rounded-full mb-2 font-['Plus_Jakarta_Sans'] shadow-2xs">
-            2026
+    <section class="mb-6 overflow-x-auto no-scrollbar py-1">
+        <div class="flex items-center gap-4 min-w-max px-2 border-b border-[#E8E0EF] pb-3">
+            {% for s in stages %}
+            <div class="flex flex-col items-center cursor-pointer group">
+                <div class="flex items-center gap-1 text-xs font-bold {% if s.is_active %}text-[#8064A2]{% else %}text-[#81758A]{% endif %} mb-1.5">
+                    <span>{{ s.icon }}</span>
+                    <span>{{ s.name }}</span>
+                </div>
+                <!-- 選取下劃線 -->
+                <div class="w-8 h-1 rounded-full {% if s.is_active %}bg-[#8064A2]{% else %}bg-transparent{% endif %}"></div>
+            </div>
+            {% endfor %}
         </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 📍 垂直時間線 Timeline -->
+    <!-- ========================================== -->
+    {% if has_timeline %}
+    <section class="space-y-6 relative">
+        <!-- 貫穿垂直時間線 -->
+        <div class="absolute left-[88px] top-3 bottom-3 w-0.5 bg-[#E8E0EF] z-0"></div>
 
         {% for item in timeline_items %}
-        <div class="timeline-card-item relative pl-2 group transition-all duration-300" data-category="{{ item.category }}">
-            <!-- 左側節點 (目前所在事件使用較大且具備 Glow 的節點) -->
-            <div class="absolute -left-[30px] sm:-left-[38px] top-2 {% if item.is_current %}history-timeline-node-active{% else %}history-timeline-node{% endif %}"></div>
+        <div class="flex items-start gap-4 relative z-10">
+            <!-- 左側：日期與星期 -->
+            <div class="w-18 shrink-0 text-right pt-1">
+                <span class="block text-xs font-extrabold text-[#4A4052] font-['Plus_Jakarta_Sans'] leading-tight">
+                    {{ item.date_str }}
+                </span>
+                <span class="block text-[11px] font-medium text-[#81758A] font-['Be_Vietnam_Pro'] mt-0.5">
+                    {{ item.weekday_str }}
+                </span>
+            </div>
 
-            <!-- 右側白色圓角卡片 -->
-            <div onclick="window.location.href='{{ item.detail_url }}{% if active_selection_query %}?{{ active_selection_query }}{% endif %}'" class="history-card-hover bg-white rounded-3xl p-4 sm:p-5 border border-[#E8E0EF] shadow-[0_2px_12px_rgba(128,100,162,0.04)] hover:border-[#A98BC7]/60 cursor-pointer transition-all">
-                
-                <!-- 卡片頂部：日期與類型標籤 -->
-                <div class="flex items-center justify-between gap-2 mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-[#8064A2] font-['Plus_Jakarta_Sans']">
-                            ● {{ item.date }}
-                        </span>
-                        <span class="text-[10px] font-extrabold bg-[#EDE5F5] text-[#8064A2] px-2 py-0.5 rounded-full">
-                            {{ item.category_label }}
-                        </span>
-                    </div>
-                    {% if item.weight %}
-                    <span class="text-xs font-extrabold text-[#8064A2]">
-                        {{ item.weight }} <span class="text-[10px] text-[#81758A] font-normal">kg</span>
+            <!-- 時間軸節點圓點 -->
+            <div class="w-4 h-4 rounded-full bg-[#8064A2] border-4 border-white shadow-xs shrink-0 mt-2 z-10"></div>
+
+            <!-- 右側：事件卡片 -->
+            <div class="flex-1 bg-white rounded-3xl p-4 border border-[#E8E0EF] shadow-[0_4px_16px_rgba(128,100,162,0.04)] hover:shadow-md transition-shadow">
+                <!-- 頂部類別 Icon 標籤與伴侶標籤 -->
+                <div class="flex items-center justify-between mb-2">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full {{ item.bg_color }} {{ item.text_color }}">
+                        <span>{{ item.icon }}</span>
+                        <span>{{ item.subtitle }}</span>
+                    </span>
+
+                    {% if item.partner_name %}
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-[#8064A2] bg-[#EDE5F5] px-2.5 py-0.5 rounded-full border border-[#E8E0EF]/60 shadow-2xs">
+                        <span>{{ item.partner_avatar }}</span>
+                        <span>{{ item.partner_name }}</span>
                     </span>
                     {% endif %}
                 </div>
 
-                <!-- 標題 -->
-                <h3 class="text-sm sm:text-base font-bold text-[#4A4052] font-['Plus_Jakarta_Sans'] group-hover:text-[#8064A2] transition-colors mb-1">
+                <!-- 事件名稱 -->
+                <h3 class="font-extrabold text-sm text-[#4A4052] font-['Plus_Jakarta_Sans'] mb-1">
                     {{ item.title }}
                 </h3>
 
-                <!-- 簡短摘要 -->
-                <p class="text-xs text-[#81758A] leading-relaxed font-['Be_Vietnam_Pro']">
-                    {{ item.summary }}
+                <!-- 紀錄內容 -->
+                <p class="text-xs text-[#4A4052] font-medium leading-relaxed font-['Be_Vietnam_Pro'] mb-2.5">
+                    {{ item.content }}
                 </p>
 
-                <!-- 心情標籤 (若有) -->
+                <!-- 心情標籤 -->
                 {% if item.feelings %}
-                <div class="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2 border-t border-[#E8E0EF]/60">
+                <div class="flex flex-wrap gap-1.5 mb-2.5">
                     {% for f in item.feelings %}
-                    <span class="text-[11px] font-semibold bg-[#FAF8FC] text-[#8064A2] border border-[#E8E0EF] px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-medium bg-[#EDE5F5] text-[#8064A2] px-2 py-0.5 rounded-full">
                         <span>{{ f.emoji }}</span>
                         <span>{{ f.name }}</span>
                     </span>
                     {% endfor %}
                 </div>
                 {% endif %}
+
+                <!-- 數據指標 (若有) -->
+                {% if item.metrics %}
+                <div class="flex flex-wrap gap-1.5 mb-2.5">
+                    {% for m in item.metrics %}
+                    <span class="text-[10px] font-bold text-[#4A4052] bg-[#FAF8FC] border border-[#E8E0EF] px-2 py-0.5 rounded-lg">
+                        {{ m.label }}: <span class="text-[#8064A2]">{{ m.val }}</span>
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- 相片 (若有) -->
+                {% if item.photo %}
+                <div class="rounded-2xl overflow-hidden max-h-52 bg-[#FAF8FC] border border-[#E8E0EF] mt-1">
+                    <img src="{{ item.photo }}" alt="{{ item.title }}" class="w-full h-auto max-h-52 object-cover rounded-2xl">
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
-    </div>
+    </section>
     {% else %}
-    <!-- 空狀態 -->
-    <div class="text-center py-16 px-6 bg-white rounded-3xl border border-[#E8E0EF] shadow-2xs">
-        <span class="material-symbols-outlined text-5xl text-[#A98BC7]/50 mb-3 block">calendar_month</span>
-        <h3 class="text-base font-bold text-[#4A4052] mb-1">目前尚無時間軸紀錄</h3>
-        <p class="text-xs text-[#81758A] mb-5 max-w-xs mx-auto">
-            新增產檢或成長紀錄，系統將自動依時間排列精彩時光！
+    <!-- Empty State -->
+    <section class="text-center py-12 px-6 bg-white rounded-3xl border border-[#E8E0EF] shadow-2xs">
+        <span class="text-4xl mb-2 block">📅</span>
+        <h3 class="text-sm font-bold text-[#4A4052] mb-1">還沒有時光軌跡</h3>
+        <p class="text-xs text-[#81758A] mb-4 max-w-xs mx-auto">
+            開始紀錄第一筆產檢或心情筆記，留下屬於你們的故事。
         </p>
-        <a href="/pregnancyrecord/add/" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#8064A2] hover:bg-[#6c518d] px-5 py-2.5 rounded-full transition-colors shadow-xs">
+        <a href="/pregnancyrecord/add/" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#8064A2] hover:bg-[#6c518d] px-4 py-2 rounded-full transition-colors shadow-xs">
             <span class="material-symbols-outlined text-sm">add</span>
-            <span>新增第一筆紀錄</span>
+            <span>新增今日紀錄</span>
         </a>
-    </div>
+    </section>
     {% endif %}
 
-    <!-- ========================================== -->
-    <!-- 右下角 Floating Action Button (FAB) -->
-    <!-- ========================================== -->
-    <div class="fixed bottom-20 right-6 sm:right-10 z-40">
-        <a href="/pregnancyrecord/add/" class="flex items-center gap-2 bg-[#8064A2] hover:bg-[#6c518d] text-white px-4 py-3 rounded-full shadow-lg shadow-[#8064A2]/30 active:scale-95 transition-all text-xs font-bold cursor-pointer">
-            <span class="material-symbols-outlined text-base">add</span>
-            <span>新增紀錄</span>
-        </a>
-    </div>
+    <!-- 右下角浮動「＋」新增按鈕 -->
+    <a href="/pregnancyrecord/add/" class="fixed bottom-20 right-6 w-12 h-12 rounded-full bg-[#8064A2] hover:bg-[#6c518d] text-white shadow-lg flex items-center justify-center transition-transform active:scale-90 z-40">
+        <span class="material-symbols-outlined text-2xl">add</span>
+    </a>
 
 </main>
-
-<script>
-    function filterTimeline(category, btn) {
-        // 更新按鈕樣式
-        document.querySelectorAll('.timeline-filter-btn').forEach(b => {
-            b.className = 'timeline-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-white text-[#81758A] border border-[#E8E0EF] hover:bg-[#EDE5F5] hover:text-[#8064A2]';
-        });
-        btn.className = 'timeline-filter-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer bg-[#A98BC7] text-white shadow-2xs';
-
-        // 篩選卡片
-        document.querySelectorAll('.timeline-card-item').forEach(card => {
-            if (category === 'all' || card.dataset.category === category) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-</script>
 {% endblock %}
