@@ -1,4 +1,4 @@
-{% extends 'base/base.html' %}
+﻿{% extends 'base/base.html' %}
 {% load static %}
 {% block title %}編輯嬰幼兒資料{% endblock %}
 {% block extra_css %}
@@ -16,8 +16,8 @@
         </div>
     </header>
 
-    <main class="pt-4 px-4 mx-auto max-w-md md:max-w-none w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64">
-        <form method="post" action="{% url 'edit_baby_information' %}" class="space-y-6">
+    <main class="pt-2 px-4 mx-auto max-w-md md:max-w-none w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64 space-y-5">
+        <form method="post" action="{% url 'edit_baby_information' %}" class="space-y-5">
             {% csrf_token %}
 
             {% if error %}
@@ -27,211 +27,269 @@
             </div>
             {% endif %}
 
+            <!-- ── 基本資料 ── -->
             <section class="bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-surface-container-high">
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span class="material-symbols-outlined text-primary text-[20px]">child_care</span>
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-[18px]">child_care</span>
                     </div>
-                    <h2 class="font-headline font-bold text-lg">嬰幼兒基本資料</h2>
+                    <h2 class="font-headline font-bold text-base text-on-surface">基本資料</h2>
                 </div>
 
-                <div class="space-y-5">
-                    <div class="space-y-2">
+                <div class="space-y-4">
+                    <!-- 嬰兒暱稱（始終可編輯） -->
+                    <div class="space-y-1.5">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">嬰兒暱稱</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">face</span>
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[20px]">face</span>
                             <input type="text" name="baby_name" value="{{ baby.name }}" required placeholder="例如：小寶、球球"
-                                   class="w-full bg-surface-container-low border-none rounded-xl pl-12 pr-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium placeholder:text-on-surface-variant/40" />
+                                   class="w-full bg-surface-container-low border-none rounded-xl pl-12 pr-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all text-sm outline-none font-medium placeholder:text-on-surface-variant/40" />
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生時間</label>
+                    <!-- 出生時間 -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1 flex items-center gap-2">
+                            出生時間
+                            {% if birth_locked %}
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+                                <span class="material-symbols-outlined text-[11px]">lock</span>已鎖定
+                            </span>
+                            {% endif %}
+                        </label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">event</span>
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[20px]">event</span>
                             <input type="datetime-local" name="birthdaytime" id="birthdaytime-input"
                                    value="{{ birthdaytime_value }}"
                                    max="{% now 'Y-m-d' %}T23:59"
-                                    class="w-full bg-surface-container-low border-none rounded-xl pl-11 pr-3 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
+                                   {% if birth_locked %}readonly{% endif %}
+                                   class="w-full border-none rounded-xl pl-11 pr-3 py-3.5 text-sm outline-none font-medium transition-all
+                                          {% if birth_locked %}bg-surface-container-low/40 text-on-surface-variant/60 cursor-not-allowed{% else %}bg-surface-container-low text-on-surface focus:ring-2 focus:ring-primary/30{% endif %}" />
                         </div>
                     </div>
-
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">最後一次月經時間 (LMP)</label>
+                    <!-- LMP（唯讀） -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">最後一次月經 (LMP)</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">calendar_month</span>
-                            <input type="date" name="lmp_date" value="{{ lmp_date_value }}"
-                                readonly
-                                class="w-full bg-surface-container-low/40 border-none rounded-xl pl-11 pr-3 py-3.5 text-on-surface-variant/60 focus:outline-none transition-all text-sm outline-none font-medium cursor-not-allowed" />
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-[20px]">calendar_month</span>
+                            <input type="date" name="lmp_date" value="{{ lmp_date_value }}" readonly
+                                   class="w-full bg-surface-container-low/40 border-none rounded-xl pl-11 pr-3 py-3.5 text-on-surface-variant/60 text-sm outline-none font-medium cursor-not-allowed" />
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <!-- 出生週數（唯讀，自動計算） -->
+                    <div class="space-y-1.5">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生週數</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40">auto_awesome</span>
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-[20px]">auto_awesome</span>
                             <input type="text" name="birth_weeks" value="{{ birth_weeks_value }}" readonly
                                    class="w-full bg-surface-container-low/40 border-none rounded-xl pl-11 pr-4 py-3.5 text-on-surface-variant/60 focus:outline-none transition-all text-sm outline-none font-medium cursor-not-allowed select-none"
                                    placeholder="系統自動計算" />
                         </div>
 
                     </div>
-
-
-
-
-
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1 flex justify-between items-center">
                             <span>加入碼 (分享給其他照顧者)</span>
                         </label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">vpn_key</span>
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-[20px]">vpn_key</span>
                             <input type="text" id="join-code-display" name="join_code" value="{{ join_code }}" readonly
-                                   class="w-full bg-surface-container-low border-none rounded-xl pl-12 pr-12 py-3.5 text-primary focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-extrabold tracking-widest cursor-default select-all" />
+                                   class="w-full bg-surface-container-low border-none rounded-xl pl-12 pr-12 py-3.5 text-primary text-sm outline-none font-extrabold tracking-widest cursor-default select-all" />
                             <button type="button" id="copy-join-code-btn"
                                     class="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-surface-container-highest active:scale-95 rounded-lg transition-all cursor-pointer text-primary" title="複製加入碼">
                                 <span class="material-symbols-outlined text-[20px]">content_copy</span>
                             </button>
                         </div>
-                        <p class="text-[10px] text-on-surface-variant/70 pl-1 mt-1 font-medium">* 系統會根據單胎或多胞胎產生專屬代碼</p>
+                        <p class="text-[10px] text-on-surface-variant/60 pl-1 font-medium">系統會根據單胎或多胞胎產生專屬代碼</p>
                     </div>
                 </div>
             </section>
 
+            <!-- ── 出生體徵 ── -->
             <section class="bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-surface-container-high">
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span class="material-symbols-outlined text-primary text-[20px]">monitor_weight</span>
+                <div class="flex items-center justify-between gap-3 mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-[18px]">monitor_weight</span>
+                        </div>
+                        <h2 class="font-headline font-bold text-base text-on-surface">出生體徵紀錄</h2>
                     </div>
-                    <h2 class="font-headline font-bold text-lg text-primary">出生體徵紀錄</h2>
+                    {% if birth_locked %}
+                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 shrink-0">
+                        <span class="material-symbols-outlined text-[13px]">lock</span>已鎖定，無法修改
+                    </span>
+                    {% endif %}
                 </div>
 
+                {% if birth_locked %}
+                <!-- 鎖定狀態：展示卡 -->
+                <div class="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 mb-4">
+                    <p class="text-xs text-amber-700 font-medium flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">info</span>
+                        出生體徵於登記後即鎖定，如需修改請聯繫系統管理員
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    {% if baby.baby_weight %}
+                    <div class="bg-surface-container-low/50 rounded-2xl p-4 flex flex-col gap-1">
+                        <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">出生體重</span>
+                        <span class="text-lg font-bold text-on-surface">{{ baby.baby_weight }} <span class="text-sm font-medium text-on-surface-variant">kg</span></span>
+                    </div>
+                    {% endif %}
+                    {% if baby.baby_height %}
+                    <div class="bg-surface-container-low/50 rounded-2xl p-4 flex flex-col gap-1">
+                        <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">出生身長</span>
+                        <span class="text-lg font-bold text-on-surface">{{ baby.baby_height }} <span class="text-sm font-medium text-on-surface-variant">cm</span></span>
+                    </div>
+                    {% endif %}
+                    {% if baby.babyheadcircumference %}
+                    <div class="bg-surface-container-low/50 rounded-2xl p-4 flex flex-col gap-1">
+                        <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">出生頭圍</span>
+                        <span class="text-lg font-bold text-on-surface">{{ baby.babyheadcircumference }} <span class="text-sm font-medium text-on-surface-variant">cm</span></span>
+                    </div>
+                    {% endif %}
+                    {% if baby.chestcircumference %}
+                    <div class="bg-surface-container-low/50 rounded-2xl p-4 flex flex-col gap-1">
+                        <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">出生胸圍</span>
+                        <span class="text-lg font-bold text-on-surface">{{ baby.chestcircumference }} <span class="text-sm font-medium text-on-surface-variant">cm</span></span>
+                    </div>
+                    {% endif %}
+                    {% if baby.production_method %}
+                    <div class="col-span-2 bg-surface-container-low/50 rounded-2xl p-4 flex flex-col gap-1">
+                        <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">生產方式</span>
+                        <span class="text-base font-bold text-on-surface">{{ baby.production_method }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% else %}
+                <!-- 未鎖定：可編輯 input -->
                 <div class="grid grid-cols-2 gap-4 gap-y-5">
-                    <div class="space-y-2">
+                    <div class="space-y-1.5">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生體重</label>
                         <div class="relative">
-                            <input type="number" name="birth_weight" step="0.01" min="0.3" max="6.0" value="{{ baby.baby_weight }}" placeholder="如 3.2" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
+                            <input type="number" name="birth_weight" step="0.01" min="0.3" max="6.0"
+                                   value="{{ baby.baby_weight }}" placeholder="如 3.2"
+                                   class="w-full bg-surface-container-low border-none rounded-xl px-4 pr-10 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all text-sm outline-none font-medium" />
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">kg</span>
                         </div>
                     </div>
-
-                    <div class="space-y-2">
+                    <div class="space-y-1.5">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生身長</label>
                         <div class="relative">
-                            <input type="number" name="birth_height" step="0.1" min="25" max="65" value="{{ baby.baby_height }}" placeholder="如 50.5" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
+                            <input type="number" name="birth_height" step="0.1" min="25" max="65"
+                                   value="{{ baby.baby_height }}" placeholder="如 50.5"
+                                   class="w-full bg-surface-container-low border-none rounded-xl px-4 pr-10 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all text-sm outline-none font-medium" />
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">cm</span>
                         </div>
                     </div>
-
-                    <div class="space-y-2">
+                    <div class="space-y-1.5">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生頭圍</label>
                         <div class="relative">
-                            <input type="number" name="birth_head" step="0.1" min="25" max="45" value="{{ baby.babyheadcircumference }}" placeholder="如 34" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
+                            <input type="number" name="birth_head" step="0.1" min="25" max="45"
+                                   value="{{ baby.babyheadcircumference }}" placeholder="如 34"
+                                   class="w-full bg-surface-container-low border-none rounded-xl px-4 pr-10 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all text-sm outline-none font-medium" />
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">cm</span>
                         </div>
                     </div>
-
-                    <div class="space-y-2">
+                    <div class="space-y-1.5">
                         <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">出生胸圍</label>
                         <div class="relative">
-                            <input type="number" name="birth_chest" step="0.1" min="20" max="42" value="{{ baby.chestcircumference }}" placeholder="如 32" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium" />
+                            <input type="number" name="birth_chest" step="0.1" min="20" max="42"
+                                   value="{{ baby.chestcircumference }}" placeholder="如 32"
+                                   class="w-full bg-surface-container-low border-none rounded-xl px-4 pr-10 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all text-sm outline-none font-medium" />
                             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-on-surface-variant">cm</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="mt-5 space-y-2">
+                <div class="mt-4 space-y-1.5">
                     <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider pl-1">生產方式</label>
                     <div class="relative">
-                        <select name="production_method" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary-container transition-all text-sm outline-none font-medium appearance-none">
+                        <select name="production_method"
+                                class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/30 transition-all text-sm outline-none font-medium appearance-none">
                             <option value="" disabled {% if not baby.production_method %}selected{% endif %}>請選擇生產方式</option>
                             <option value="自然產"   {% if baby.production_method == '自然產'   %}selected{% endif %}>自然產</option>
                             <option value="剖腹產"   {% if baby.production_method == '剖腹產'   %}selected{% endif %}>剖腹產</option>
                             <option value="無痛分娩" {% if baby.production_method == '無痛分娩' %}selected{% endif %}>無痛分娩自然產</option>
                             <option value="水中生產" {% if baby.production_method == '水中生產' %}selected{% endif %}>水中生產</option>
                         </select>
+                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 pointer-events-none text-[20px]">expand_more</span>
                     </div>
                 </div>
+                {% endif %}
             </section>
 
-            <button type="submit" class="w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base shadow-[0_10px_20px_rgba(101,81,138,0.2)] hover:scale-[1.02] active:scale-95 transition-all mt-6 cursor-pointer flex items-center justify-center gap-2">
+            <!-- 儲存按鈕 -->
+            <button type="submit"
+                    class="w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base shadow-[0_10px_20px_rgba(101,81,138,0.2)] hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-xl">save</span>
                 儲存變更
             </button>
         </form>
     </main>
-
-
-
-
 {% endblock %}
 
 {% block extra_js %}
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const birthdayInput   = document.getElementById('birthdaytime-input');
-        const birthWeeksInput = document.querySelector('input[name="birth_weeks"]');
-        const lmpValue = '{{ lmp_date_value }}';
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var birthdayInput   = document.getElementById('birthdaytime-input');
+    var birthWeeksInput = document.querySelector('input[name="birth_weeks"]');
+    var lmpValue = '{{ lmp_date_value }}';
 
-        // ── 防止選到未來日期（JS 防線） ───────────────────
-        function clampToNow() {
-            if (!birthdayInput || !birthdayInput.value) return;
-            const now = new Date();
-            const nowStr = now.getFullYear() + '-'
-                + String(now.getMonth()+1).padStart(2,'0') + '-'
-                + String(now.getDate()).padStart(2,'0') + 'T'
-                + String(now.getHours()).padStart(2,'0') + ':'
-                + String(now.getMinutes()).padStart(2,'0');
-            if (birthdayInput.value > nowStr) birthdayInput.value = nowStr;
+    function clampToNow() {
+        if (!birthdayInput || !birthdayInput.value) return;
+        var now = new Date();
+        var nowStr = now.getFullYear() + '-'
+            + String(now.getMonth()+1).padStart(2,'0') + '-'
+            + String(now.getDate()).padStart(2,'0') + 'T'
+            + String(now.getHours()).padStart(2,'0') + ':'
+            + String(now.getMinutes()).padStart(2,'0');
+        if (birthdayInput.value > nowStr) birthdayInput.value = nowStr;
+    }
+
+    function calcBirthWeeks() {
+        if (!lmpValue || !birthdayInput || !birthdayInput.value) {
+            if (birthWeeksInput) birthWeeksInput.value = '';
+            return;
         }
+        var lmp      = new Date(lmpValue);
+        var birthday = new Date(birthdayInput.value);
+        var diffDays = Math.floor((birthday - lmp) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) { birthWeeksInput.value = ''; return; }
+        var weeks = Math.floor(diffDays / 7);
+        var days  = diffDays % 7;
+        birthWeeksInput.value = days ? weeks + 'w' + days + 'd' : weeks + 'w';
+    }
 
-        // ── 自動計算出生週數 ──────────────────────
-        function calcBirthWeeks() {
-            if (!lmpValue || !birthdayInput.value) {
-                birthWeeksInput.value = '';
-                return;
-            }
-            const lmp      = new Date(lmpValue);
-            const birthday = new Date(birthdayInput.value);
-            const diffDays = Math.floor((birthday - lmp) / (1000 * 60 * 60 * 24));
-            if (diffDays < 0) { birthWeeksInput.value = ''; return; }
-            const weeks = Math.floor(diffDays / 7);
-            const days  = diffDays % 7;
-            birthWeeksInput.value = days ? `${weeks}w${days}d` : `${weeks}w`;
-        }
-
-        if (birthdayInput) {
-            birthdayInput.addEventListener('change', () => { clampToNow(); calcBirthWeeks(); });
-            birthdayInput.addEventListener('input',  () => { clampToNow(); calcBirthWeeks(); });
-        }
-
-        // ── 複製加入碼 ──────────────────────
-        const copyBtn   = document.getElementById('copy-join-code-btn');
-        const codeInput = document.getElementById('join-code-display');
-        if (copyBtn && codeInput) {
-            copyBtn.addEventListener('click', () => {
-                const code = codeInput.value;
-                if (!code) return;
-                const icon = copyBtn.querySelector('span');
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(code).then(() => {
-                        icon.textContent = 'check';
-                        setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
-                    });
-                } else {
-                    const el = document.createElement('textarea');
-                    el.value = code; el.style.position = 'fixed'; el.style.opacity = '0';
-                    document.body.appendChild(el); el.focus(); el.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(el);
+    if (birthdayInput && !birthdayInput.readOnly) {
+        birthdayInput.addEventListener('change', function() { clampToNow(); calcBirthWeeks(); });
+        birthdayInput.addEventListener('input',  function() { clampToNow(); calcBirthWeeks(); });
+    }
+    // 複製加入碼
+    var copyBtn   = document.getElementById('copy-join-code-btn');
+    var codeInput = document.getElementById('join-code-display');
+    if (copyBtn && codeInput) {
+        copyBtn.addEventListener('click', function() {
+            var code = codeInput.value;
+            if (!code) return;
+            var icon = copyBtn.querySelector('span');
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(code).then(function() {
                     icon.textContent = 'check';
-                    setTimeout(() => { icon.textContent = 'content_copy'; }, 2000);
-                }
-            });
-        }
-    });
-    </script>
-
+                    setTimeout(function() { icon.textContent = 'content_copy'; }, 2000);
+                });
+            } else {
+                var el = document.createElement('textarea');
+                el.value = code; el.style.position = 'fixed'; el.style.opacity = '0';
+                document.body.appendChild(el); el.focus(); el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                icon.textContent = 'check';
+                setTimeout(function() { icon.textContent = 'content_copy'; }, 2000);
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

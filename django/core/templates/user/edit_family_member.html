@@ -1,8 +1,15 @@
 {% extends 'base/base.html' %}
 {% load static %}
-{% block title %}修改協助者權限{% endblock %}
+{% block title %}協助者管理{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user/edit_userprofile.css' %}">
+<style>
+    .seg-btn.active { background:#fff; color:#65518a; box-shadow:0 1px 2px rgba(0,0,0,0.05); border:1px solid #ddddd9; }
+    .seg-btn:not(.active) { color:#5b5c5a; }
+    .seg-btn:not(.active):hover { background: rgba(227,227,223,0.5); }
+    .perm-panel { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; opacity: 0; }
+    .perm-panel.open { max-height: 600px; opacity: 1; }
+</style>
 {% endblock %}
 {% block content %}
     <!-- Header Section -->
@@ -15,30 +22,33 @@
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="pt-24 px-4 mx-auto max-w-md md:max-w-none w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64">
+    <main class="pt-2 pb-32 px-4 mx-auto max-w-md md:max-w-none w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64 space-y-6">
 
-        <!-- 錯誤／成功訊息 -->
         {% if add_error %}
-        <div class="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">{{ add_error }}</div>
+        <div class="bg-red-50 text-red-600 text-sm rounded-2xl px-4 py-3">{{ add_error }}</div>
         {% endif %}
         {% if add_success %}
-        <div class="bg-green-50 text-green-600 text-sm rounded-xl px-4 py-3 mb-4">{{ add_success }}</div>
+        <div class="bg-green-50 text-green-700 text-sm rounded-2xl px-4 py-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">check_circle</span>{{ add_success }}
+        </div>
         {% endif %}
 
-        <!-- 待處理的加入申請 (若有) -->
+        <!-- 待審核申請 -->
         {% if pending_members %}
-        <section class="mb-8">
+        <section>
             <h2 class="text-xs font-bold text-red-500 uppercase tracking-wider mb-3 pl-1 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px]">notifications_active</span>
-                待審核的加入申請
+                <span class="material-symbols-outlined text-[16px]">notifications_active</span>待審核的加入申請
             </h2>
             <div class="space-y-3">
                 {% for req in pending_members %}
                 <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm border border-red-200/50 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 overflow-hidden">
+                            {% if req.user_id.avatar %}
+                            <img src="{{ req.user_id.avatar }}" alt="{{ req.user_id.name }}" class="w-full h-full object-cover">
+                            {% else %}
                             <span class="material-symbols-outlined text-red-500 text-[20px]">person_pin</span>
+                            {% endif %}
                         </div>
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-on-surface truncate">{{ req.user_id.name }}</p>
@@ -50,17 +60,13 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="approve_request">
                             <input type="hidden" name="request_id" value="{{ req.user_id.user_id }}">
-                            <button type="submit" class="h-10 px-4 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer shadow-sm">
-                                同意
-                            </button>
+                            <button type="submit" class="h-10 px-5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer shadow-sm">同意</button>
                         </form>
                         <form method="post" action="{% url 'edit_family_member' %}">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="reject_request">
                             <input type="hidden" name="request_id" value="{{ req.user_id.user_id }}">
-                            <button type="submit" class="h-10 px-4 bg-surface-container-high text-on-surface-variant text-sm font-bold rounded-xl hover:bg-surface-container-highest transition-colors cursor-pointer shadow-sm">
-                                拒絕
-                            </button>
+                            <button type="submit" class="h-10 px-5 bg-surface-container-high text-on-surface-variant text-sm font-bold rounded-xl hover:bg-surface-container-highest transition-colors cursor-pointer shadow-sm">拒絕</button>
                         </form>
                     </div>
                 </div>
@@ -70,36 +76,151 @@
         {% endif %}
 
         <!-- 協助者清單 -->
-        {% if family_members %}
-        <section class="space-y-3">
-            <h2 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1 pl-1">
-                協助者清單
-            </h2>
-            {% for member in family_members %}
-            <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-surface-container-high flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[20px]">face</span>
+        <section>
+            <h2 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3 pl-1">協助者清單</h2>
+            {% if family_members %}
+            <div class="space-y-3">
+                {% for member in family_members %}
+                {% with mid=member.familymember_id %}
+                <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container-high overflow-hidden">
+                    <!-- 協助者資訊列 -->
+                    <div class="flex items-center justify-between gap-4 px-5 py-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 overflow-hidden">
+                                {% if member.user.avatar %}
+                                <img src="{{ member.user.avatar }}" alt="{{ member.user.name }}" class="w-full h-full object-cover">
+                                {% else %}
+                                <span class="material-symbols-outlined text-[20px]">face</span>
+                                {% endif %}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-on-surface truncate">{{ member.user.name }}</p>
+                                {% if member.user.email %}<p class="text-xs text-on-surface-variant truncate">{{ member.user.email }}</p>{% endif %}
+                            </div>
+                        </div>
+                        {% if is_case_owner %}
+                        <button type="button"
+                            class="perm-toggle-btn shrink-0 inline-flex items-center gap-1 px-4 h-9 bg-primary/10 text-primary text-xs font-bold rounded-xl hover:bg-primary/20 transition-colors cursor-pointer"
+                            data-target="perm-panel-{{ mid }}">
+                            <span class="material-symbols-outlined text-[16px]">tune</span>
+                            <span class="toggle-label">權限</span>
+                            <span class="material-symbols-outlined text-[16px] toggle-arrow transition-transform duration-300">expand_more</span>
+                        </button>
+                        {% endif %}
                     </div>
-                    <div class="min-w-0">
-                        <p class="text-sm font-bold text-on-surface truncate">{{ member.user.name }}</p>
-                        {% if member.user.email %}<p class="text-xs text-on-surface-variant truncate">{{ member.user.email }}</p>{% endif %}
+
+                    <!-- 折疊式權限設定 -->
+                    {% if is_case_owner %}
+                    <div id="perm-panel-{{ mid }}" class="perm-panel {% if selected_member and selected_member.familymember_id == mid %}open{% endif %}">
+                        <form method="post" action="{% url 'edit_family_member' %}" class="px-5 pb-5 pt-3 space-y-4 border-t border-surface-container-high">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_permissions">
+                            <input type="hidden" name="member_id" value="{{ mid }}">
+                            <input type="hidden" id="perm_baby_records_{{ mid }}" name="perm_baby_records" value="{{ member.permissions.baby_records|default:'view' }}">
+                            <input type="hidden" id="perm_mom_records_{{ mid }}" name="perm_mom_records" value="{{ member.permissions.mom_records|default:'view' }}">
+                            <input type="hidden" id="perm_care_records_{{ mid }}" name="perm_care_records" value="{{ member.permissions.care_records|default:'view' }}">
+
+                            <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">功能權限</p>
+
+                            <!-- 成長紀錄：檢視/修改 -->
+                            {% with cur=member.permissions.baby_records|default:"view" %}
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-sm font-medium text-on-surface flex items-center gap-1.5 shrink-0">
+                                    <span class="material-symbols-outlined text-on-surface-variant text-[17px]">child_care</span>成長紀錄
+                                </span>
+                                <div class="flex bg-surface-container-low rounded-xl p-0.5 shrink-0" data-feature="baby_records" data-member="{{ mid }}">
+                                    <button type="button" class="seg-btn px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur != 'edit' %}active{% endif %}" data-value="view">檢視</button>
+                                    <button type="button" class="seg-btn px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur == 'edit' %}active{% endif %}" data-value="edit">修改</button>
+                                </div>
+                            </div>
+                            {% endwith %}
+
+                            <!-- 養育者記錄：關閉/檢視/修改（最私密，支援完全隱藏） -->
+                            {% with cur=member.permissions.mom_records|default:"view" %}
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-sm font-medium text-on-surface flex items-center gap-1.5 shrink-0">
+                                    <span class="material-symbols-outlined text-on-surface-variant text-[17px]">pregnant_woman</span>養育者記錄
+                                </span>
+                                <div class="flex bg-surface-container-low rounded-xl p-0.5 shrink-0" data-feature="mom_records" data-member="{{ mid }}">
+                                    <button type="button" class="seg-btn px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur == 'off' %}active{% endif %}" data-value="off">關閉</button>
+                                    <button type="button" class="seg-btn px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur == 'view' %}active{% endif %}" data-value="view">檢視</button>
+                                    <button type="button" class="seg-btn px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur == 'edit' %}active{% endif %}" data-value="edit">修改</button>
+                                </div>
+                            </div>
+                            {% endwith %}
+
+                            <!-- 代辦清單：檢視/修改 -->
+                            {% with cur=member.permissions.care_records|default:"view" %}
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-sm font-medium text-on-surface flex items-center gap-1.5 shrink-0">
+                                    <span class="material-symbols-outlined text-on-surface-variant text-[17px]">checklist</span>代辦清單
+                                </span>
+                                <div class="flex bg-surface-container-low rounded-xl p-0.5 shrink-0" data-feature="care_records" data-member="{{ mid }}">
+                                    <button type="button" class="seg-btn px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur != 'edit' %}active{% endif %}" data-value="view">檢視</button>
+                                    <button type="button" class="seg-btn px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur == 'edit' %}active{% endif %}" data-value="edit">修改</button>
+                                </div>
+                            </div>
+                            {% endwith %}
+
+                            <button type="submit" class="w-full mt-1 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer shadow-sm flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">check_circle</span>儲存權限
+                            </button>
+                        </form>
                     </div>
+                    {% endif %}
+
                 </div>
-                {% if is_case_owner %}
-                <a href="{% url 'edit_helper_permissions' %}?member_id={{ member.familymember_id }}"
-                   class="h-10 px-4 flex items-center bg-primary/10 text-primary text-sm font-bold rounded-xl hover:bg-primary/20 transition-colors shrink-0">
-                    設定權限
-                </a>
-                {% endif %}
+                {% endwith %}
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% else %}
+            <div class="bg-surface-container-low rounded-2xl px-5 py-8 text-sm text-on-surface-variant text-center">
+                <span class="material-symbols-outlined text-[36px] block mb-2 opacity-30">group_add</span>
+                此胎數尚無其他協助者
+            </div>
+            {% endif %}
         </section>
-        {% else %}
-        <div class="bg-surface-container-low rounded-2xl px-5 py-5 text-sm text-on-surface-variant text-center">
-            <span class="material-symbols-outlined text-[28px] block mb-2 opacity-40">group_add</span>
-            此胎數尚無其他協助者
-        </div>
-        {% endif %}
+
     </main>
+</div>
+
+<script>
+// 折疊面板開關
+document.querySelectorAll('.perm-toggle-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var panelId = btn.dataset.target;
+        var panel = document.getElementById(panelId);
+        if (!panel) return;
+        var isOpen = panel.classList.contains('open');
+        document.querySelectorAll('.perm-panel.open').forEach(function(p) {
+            p.classList.remove('open');
+            var tb = document.querySelector('[data-target="' + p.id + '"]');
+            if (tb) {
+                tb.querySelector('.toggle-label').textContent = '權限';
+                tb.querySelector('.toggle-arrow').style.transform = '';
+            }
+        });
+        if (!isOpen) {
+            panel.classList.add('open');
+            btn.querySelector('.toggle-label').textContent = '收起';
+            btn.querySelector('.toggle-arrow').style.transform = 'rotate(180deg)';
+        }
+    });
+});
+
+// 每個協助者各自的 segmented control
+document.querySelectorAll('[data-feature][data-member]').forEach(function(group) {
+    var feature = group.dataset.feature;
+    var mid = group.dataset.member;
+    var hiddenInput = document.getElementById('perm_' + feature + '_' + mid);
+    var buttons = group.querySelectorAll('.seg-btn');
+    buttons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            buttons.forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            if (hiddenInput) hiddenInput.value = btn.dataset.value;
+        });
+    });
+});
+</script>
 {% endblock %}

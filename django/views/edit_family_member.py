@@ -11,8 +11,8 @@ from views import baby_utils
 def _parse_permissions_from_post(post_data, prefix='perm_'):
     result = {}
     for key in baby_utils.FEATURE_KEYS:
-        value = (post_data.get(f'{prefix}{key}') or 'off').strip()
-        result[key] = value if value in baby_utils.PERMISSION_LEVELS else 'off'
+        value = (post_data.get(f'{prefix}{key}') or 'view').strip()
+        result[key] = value if value in baby_utils.PERMISSION_LEVELS else 'view'
     return result
 
 
@@ -23,10 +23,9 @@ def edit_family_member(request):
 
     case = resolve_active_pregnancy_case(request, current_user)
 
+    # 協助者清單只有 case owner 能進入
     if case and case.user_id != current_user.user_id:
-        viewer_membership = FamilyMember.objects.filter(pregnancycase=case, user=current_user).first()
-        if not baby_utils.has_permission(viewer_membership, 'helper_list', 'view'):
-            return redirect('profile')
+        return redirect('profile')
 
     babies = list(BabyInformation.objects.filter(pregnancycase=case).order_by('baby_id')) if case else []
     members = list(
@@ -179,7 +178,15 @@ def edit_family_member(request):
             elif selected_member:
                 selected_member.permissions = _parse_permissions_from_post(request.POST)
                 selected_member.save(update_fields=['permissions'])
-            return redirect('profile')
+                add_success = f'已更新「{selected_member.user.name}」的權限設定。'
+                # 重新整理 members 讓頁面顯示最新狀態
+                members = list(
+                    FamilyMember.objects.filter(pregnancycase_id=case)
+                    .select_related('user').order_by('join_time')
+                )
+                selected_member = next(
+                    (m for m in members if str(m.familymember_id) == str(member_id)), None
+                )
 
     return render(request, 'user/edit_family_member.html', {
         'pregnancy_case': case,
@@ -192,40 +199,14 @@ def edit_family_member(request):
         'add_success': add_success,
         'search_results': search_results,
         'is_case_owner': bool(case and case.user_id == current_user.user_id),
+        'feature_keys': baby_utils.FEATURE_KEYS,
     })
 
 
 def edit_helper_permissions(request):
-    """單一協助者的權限編輯頁面，對應 edit_helper_permissions.html。"""
-    current_user = get_current_user_profile(request)
-    if not current_user:
-        return redirect('login')
-
-    case = resolve_active_pregnancy_case(request, current_user)
-    if not case or case.user_id != current_user.user_id:
-        return redirect('profile')
-
-    members = list(
-        FamilyMember.objects
-        .filter(pregnancycase_id=case)
-        .select_related('user')
-        .order_by('join_time')
-    )
-
+    """保留 URL 相容，直接 redirect 到合併後的 edit_family_member 頁面。"""
     member_id = request.GET.get('member_id') or request.POST.get('member_id')
-    selected_member = next((m for m in members if str(m.familymember_id) == str(member_id)), None)
-    if selected_member is None and members:
-        selected_member = members[0]
-
-    if request.method == 'POST' and selected_member:
-        selected_member.permissions = _parse_permissions_from_post(request.POST)
-        selected_member.save(update_fields=['permissions'])
-        return redirect(f"{reverse('edit_helper_permissions')}?member_id={selected_member.familymember_id}")
-
-    return render(request, 'user/edit_helper_permissions.html', {
-        'pregnancy_case': case,
-        'family_members': members,
-        'selected_member': selected_member,
-        'feature_keys': baby_utils.FEATURE_KEYS,
-        'permission_levels': baby_utils.PERMISSION_LEVELS,
-    })
+    url = reverse('edit_family_member')
+    if member_id:
+        url += f'?member_id={member_id}'
+    return redirect(url)
