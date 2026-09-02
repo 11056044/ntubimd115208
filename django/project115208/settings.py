@@ -62,6 +62,18 @@ SOCIALACCOUNT_PROVIDERS = {
             'secret': 'aaf52b70d70ecdb894390f8dbce1e577',
             'key': ''
         }
+    },
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            # 沿用最下面已經有的 GOOGLE_CLIENT_ID（舊版 google_auth_login 也是用同一組）
+            'client_id': '1005276403057-p67ocf8c13e5121akigm7sq93l7db7s2.apps.googleusercontent.com',
+            # 🚨 請到 Google Cloud Console > API 和服務 > 憑證，找到這個 OAuth Client ID
+            # 對應的「用戶端密碼 (Client secret)」填進來，否則 /accounts/google/login/ 一樣會出錯。
+            'secret': '請填入 Google OAuth Client Secret',
+            'key': ''
+        }
     }
 }
 SOCIALACCOUNT_LOGIN_ON_GET = True

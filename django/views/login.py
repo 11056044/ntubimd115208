@@ -15,6 +15,7 @@ from google.auth.transport import requests
 from google.oauth2 import id_token
 from allauth.account.signals import user_logged_in
 from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.signals import social_account_added
 
 from core.models import UserProfile
 
@@ -75,8 +76,15 @@ def handle_allauth_login_success(request, user, **kwargs):
                     email=email,
                 )
                 user_profile.save(force_insert=True)
-            # 已存在的 UserProfile：不再覆寫任何欄位（email/name/line_id/avatar），
-            # 僅在首次建立帳號時才會寫入這些從社群帳號取得的資訊。
+            else:
+                # 已存在的 UserProfile：不覆寫 name/avatar/email 等既有資料，
+                # 只有 LINE 登入且 line_id 欄位目前是空的情況下才補寫入，
+                # 讓「是否已綁定 LINE」的狀態能正確判斷。
+                # （Google 這邊因為是直接用 email 完全比對找到帳號，比對到時
+                # email 本來就已經等於這次登入的 email，不需要再補寫。）
+                if is_line and line_user_id and not user_profile.line_id:
+                    user_profile.line_id = line_user_id
+                    user_profile.save(update_fields=['line_id'])
 
         request.session['user_id'] = str(user_profile.user_id)
         request.session['user_email'] = user_profile.email
@@ -145,7 +153,7 @@ def google_auth_login(request):
                 email=email,
             )
             user_profile.save(force_insert=True)
-        # 已存在的 UserProfile：不再覆寫 email/name/line_id/avatar 等欄位，
+        # 已存在的 UserProfile：不再覆寫 name/line_id/avatar 等欄位，
         # 僅在首次建立帳號時才會寫入這些從 Google 帳號取得的資訊。
 
     request.session['user_id'] = str(user_profile.user_id)
@@ -166,6 +174,88 @@ def google_auth_login(request):
         })
 
     return HttpResponseRedirect(reverse('index'))
+
+# ==========================================
+# 帳號綁定（在已登入狀態下，額外連結第二個社群帳號）
+# ==========================================
+@receiver(social_account_added)
+def handle_social_account_connected(request, sociallogin, **kwargs):
+    """
+    當使用者已經登入，並透過 allauth 的 `?process=connect` 流程
+    額外連結第二個社群帳號時（例如原本用 Google 登入，再去綁定 LINE），
+    allauth 會發出 social_account_added 訊號（而不是 user_logged_in）。
+
+    這裡把新綁定的社群帳號 ID 寫回「目前這一筆」UserProfile（用 session 裡的
+    user_id 判斷是哪一筆），避免又跑去 handle_allauth_login_success 那條
+    「找不到就新建」的邏輯，產生出兩個帳號。
+    """
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return
+
+    user_profile = UserProfile.objects.filter(user_id=user_id).first()
+    if not user_profile:
+        return
+
+    social_account = sociallogin.account
+    provider = str(social_account.provider)
+    extra_data = social_account.extra_data or {}
+
+    is_google = (provider == 'google')
+    is_line = (provider == 'line' or provider == '2010267631' or extra_data.get('iss') == 'https://access.line.me')
+
+    try:
+        with transaction.atomic():
+            if is_google and not user_profile.google_linked:
+                google_email = extra_data.get('email', '')
+                if google_email:
+                    user_profile.email = google_email
+                    user_profile.save(update_fields=['email'])
+            elif is_line and not user_profile.line_id:
+                user_profile.line_id = extra_data.get('sub') or social_account.uid
+                user_profile.save(update_fields=['line_id'])
+    except Exception as e:
+        logger.error(f"綁定社群帳號寫回 UserProfile 失敗，原因: {str(e)}", exc_info=True)
+
+
+def _current_user_profile(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return None
+    return UserProfile.objects.filter(user_id=user_id).first()
+
+
+def bind_google_account(request):
+    """個人資料頁「綁定 Google」按鈕的入口，導向 allauth 的 connect 流程"""
+    user_profile = _current_user_profile(request)
+    if not user_profile:
+        return redirect('login')
+
+    if user_profile.google_linked:
+        return redirect(f"{reverse('profile')}?perm_error=already_google")
+
+    if not request.user.is_authenticated:
+        # 理論上完成過任一種社群登入後 request.user 就會是 allauth 對應的帳號，
+        # 若不是，代表目前的 session 狀態異常，請使用者重新登入再綁定。
+        return redirect(f"{reverse('profile')}?perm_error=need_relogin")
+
+    return redirect(f"{reverse('google_login')}?process=connect")
+
+
+def bind_line_account(request):
+    """個人資料頁「綁定 LINE」按鈕的入口，導向 allauth 的 connect 流程"""
+    user_profile = _current_user_profile(request)
+    if not user_profile:
+        return redirect('login')
+
+    if user_profile.line_linked:
+        return redirect(f"{reverse('profile')}?perm_error=already_line")
+
+    if not request.user.is_authenticated:
+        return redirect(f"{reverse('profile')}?perm_error=need_relogin")
+
+    return redirect(f"{reverse('line_login')}?process=connect")
+
 
 @require_POST
 def logout_user(request):
