@@ -19,9 +19,21 @@ class UserProfile(models.Model):
 
     @property
     def line_name(self):
-        # compatibility alias: templates and code use `line_name` while the DB column is `line_id`
         return self.line_id
+
+    LINE_PLACEHOLDER_EMAIL_SUFFIX = '@line.platform'
 
     @line_name.setter
     def line_name(self, value):
         self.line_id = value
+
+    @property
+    def google_linked(self):
+        """是否已綁定 Google 帳號：以 email 欄位本身作為判斷依據
+        （真正的 Google 信箱才算，LINE 自動產生的佔位 email 不算）"""
+        return bool(self.email) and not self.email.endswith(self.LINE_PLACEHOLDER_EMAIL_SUFFIX)
+
+    @property
+    def line_linked(self):
+        """是否已綁定 LINE 帳號（無論是登入用或後續額外綁定）"""
+        return bool(self.line_id)

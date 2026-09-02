@@ -60,6 +60,19 @@ urlpatterns = [
         name='logout'
     ),
 
+    # 帳號綁定（個人資料頁使用）
+    path(
+        'bind_google_account/',
+        login.bind_google_account,
+        name='bind_google_account'
+    ),
+
+    path(
+        'bind_line_account/',
+        login.bind_line_account,
+        name='bind_line_account'
+    ),
+
     # ======================
     # 育兒提醒
     # ======================
@@ -300,6 +313,4 @@ urlpatterns = [
         history_review.history_review,
         name='history_review_alias'
     ),
-
-
 ]
