@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load socialaccount %}
 {% block title %}個人資料{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user/userprofile.css' %}">
@@ -131,11 +132,12 @@
                         <span class="material-symbols-outlined text-[13px] mr-0.5">check_circle</span>已綁定
                     </span>
                     {% else %}
-                    <button onclick="window.location.href='{% url 'bind_line_account' %}'"
-                        class="shrink-0 bg-primary/10 text-primary text-xs font-bold px-4 py-2 rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer">
-                        綁定
-                    </button>
+                        <a  href="{% provider_login_url 'line' %}"  class="shrink-0 bg-primary/10 text-primary text-xs font-bold px-4 py-2 rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer">
+                            綁定
+                        </a>
                     {% endif %}
+
+                </a>
                 </div>
             </div>
         </section>

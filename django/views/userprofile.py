@@ -294,3 +294,27 @@ def update_profile(request):
         messages.error(request, f'儲存發生錯誤：{e}')
 
     return redirect('profile')
+
+def login_page(request):
+    return render(request, 'userprofile.html', {
+        'line_login_url': _safe_line_login_url(),
+    })
+
+import logging
+logger = logging.getLogger(__name__)
+from allauth.socialaccount.models import SocialApp
+
+def _safe_line_login_url():
+    """Return the LINE login route only when there is exactly one configured LINE SocialApp.
+
+    The allauth template tag `provider_login_url 'line'` raises `MultipleObjectsReturned`
+    when duplicate `SocialApp` rows exist for the same provider. This guard keeps the page
+    from crashing while still allowing the normal route when configuration is valid.
+    """
+    try:
+        if SocialApp.objects.filter(provider='line').count() != 1:
+            return ''
+    except Exception:
+        logger.exception('Unable to resolve LINE SocialApp while building login page')
+        return ''
+    return '/accounts/line/login/'

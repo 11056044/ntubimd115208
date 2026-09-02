@@ -14,15 +14,65 @@ from django.views.decorators.http import require_POST
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from allauth.account.signals import user_logged_in
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.signals import social_account_added
 
 from core.models import UserProfile
 
 logger = logging.getLogger(__name__)
 
+
+def _safe_line_login_url():
+    """Return the LINE login route only when there is exactly one configured LINE SocialApp.
+
+    The allauth template tag `provider_login_url 'line'` raises `MultipleObjectsReturned`
+    when duplicate `SocialApp` rows exist for the same provider. This guard keeps the page
+    from crashing while still allowing the normal route when configuration is valid.
+    """
+    try:
+        if SocialApp.objects.filter(provider='line').count() != 1:
+            return ''
+    except Exception:
+        logger.exception('Unable to resolve LINE SocialApp while building login page')
+        return ''
+    return '/accounts/line/login/'
+
+
+def _resolve_user_profile_for_social_binding(request, social_account, provider, extra_data):
+    """Resolve the correct UserProfile for a connect flow even when session state is missing or stale."""
+    user_id = request.session.get('user_id')
+    if user_id:
+        user_profile = UserProfile.objects.filter(user_id=user_id).first()
+        if user_profile:
+            return user_profile
+
+    auth_user = getattr(request, 'user', None)
+    if getattr(auth_user, 'is_authenticated', False):
+        auth_email = getattr(auth_user, 'email', '') or request.session.get('user_email', '')
+        if auth_email:
+            user_profile = UserProfile.objects.filter(email=auth_email).first()
+            if user_profile:
+                return user_profile
+
+    google_email = extra_data.get('email', '') if provider == 'google' else ''
+    if google_email:
+        user_profile = UserProfile.objects.filter(email=google_email).first()
+        if user_profile:
+            return user_profile
+
+    line_user_id = (extra_data.get('sub') or social_account.uid or '').strip()
+    if line_user_id:
+        user_profile = UserProfile.objects.filter(line_id=line_user_id).first()
+        if user_profile:
+            return user_profile
+
+    return None
+
+
 def login_page(request):
-    return render(request, 'login.html')
+    return render(request, 'login.html', {
+        'line_login_url': _safe_line_login_url(),
+    })
 
 def _next_user_id():
     max_user_id = UserProfile.objects.aggregate(max_user_id=Max('user_id')).get('max_user_id')
@@ -185,21 +235,22 @@ def handle_social_account_connected(request, sociallogin, **kwargs):
     額外連結第二個社群帳號時（例如原本用 Google 登入，再去綁定 LINE），
     allauth 會發出 social_account_added 訊號（而不是 user_logged_in）。
 
-    這裡把新綁定的社群帳號 ID 寫回「目前這一筆」UserProfile（用 session 裡的
-    user_id 判斷是哪一筆），避免又跑去 handle_allauth_login_success 那條
-    「找不到就新建」的邏輯，產生出兩個帳號。
+    這裡會先用 session / request.user / email / LINE ID 依序找出正確的
+    UserProfile，再把新的社群綁定資料寫回該筆資料，避免因為 session 失效
+    或過期而錯寫到另一筆帳號，造成 Google→LINE 綁定失敗。
     """
-    user_id = request.session.get('user_id')
-    if not user_id:
-        return
-
-    user_profile = UserProfile.objects.filter(user_id=user_id).first()
-    if not user_profile:
-        return
-
     social_account = sociallogin.account
     provider = str(social_account.provider)
     extra_data = social_account.extra_data or {}
+    user_profile = _resolve_user_profile_for_social_binding(request, social_account, provider, extra_data)
+    if not user_profile:
+        logger.warning(
+            "social_account_added: unable to resolve matching UserProfile for provider=%s uid=%s email=%s",
+            provider,
+            social_account.uid,
+            extra_data.get('email', ''),
+        )
+        return
 
     is_google = (provider == 'google')
     is_line = (provider == 'line' or provider == '2010267631' or extra_data.get('iss') == 'https://access.line.me')
@@ -212,8 +263,16 @@ def handle_social_account_connected(request, sociallogin, **kwargs):
                     user_profile.email = google_email
                     user_profile.save(update_fields=['email'])
             elif is_line and not user_profile.line_id:
-                user_profile.line_id = extra_data.get('sub') or social_account.uid
-                user_profile.save(update_fields=['line_id'])
+                line_user_id = (extra_data.get('sub') or social_account.uid or '').strip()
+                if line_user_id:
+                    user_profile.line_id = line_user_id
+                    user_profile.save(update_fields=['line_id'])
+
+            request.session['user_id'] = str(user_profile.user_id)
+            request.session['user_email'] = user_profile.email
+            request.session['user_name'] = user_profile.name
+            request.session['user_avatar'] = user_profile.avatar or ''
+            request.session.modified = True
     except Exception as e:
         logger.error(f"綁定社群帳號寫回 UserProfile 失敗，原因: {str(e)}", exc_info=True)
 
@@ -234,9 +293,9 @@ def bind_google_account(request):
     if user_profile.google_linked:
         return redirect(f"{reverse('profile')}?perm_error=already_google")
 
-    if not request.user.is_authenticated:
-        # 理論上完成過任一種社群登入後 request.user 就會是 allauth 對應的帳號，
-        # 若不是，代表目前的 session 狀態異常，請使用者重新登入再綁定。
+    if not request.session.get('user_id') and not getattr(request.user, 'is_authenticated', False):
+        # 對於自訂的社群登入流程，session user_id 才是實際身份來源；
+        # request.user 可能尚未被 allauth 設成已驗證狀態，這時不能直接擋住綁定流程。
         return redirect(f"{reverse('profile')}?perm_error=need_relogin")
 
     return redirect(f"{reverse('google_login')}?process=connect")
@@ -251,7 +310,7 @@ def bind_line_account(request):
     if user_profile.line_linked:
         return redirect(f"{reverse('profile')}?perm_error=already_line")
 
-    if not request.user.is_authenticated:
+    if not request.session.get('user_id') and not getattr(request.user, 'is_authenticated', False):
         return redirect(f"{reverse('profile')}?perm_error=need_relogin")
 
     return redirect(f"{reverse('line_login')}?process=connect")
