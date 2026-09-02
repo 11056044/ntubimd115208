@@ -34,18 +34,14 @@ def _format_number(value):
     return str(value)
 
 
-def _annotate_family_roles(family_members):
-    """依 join_time 最早者為「養育者」，其餘為「協助者」。
-    family_members 需已依 join_time 由小到大排序（order_by('join_time')）。
+def _annotate_family_roles(family_members, case_owner_id=None):
+    """依 case.user_id 判斷養育者，其餘為「協助者」。
     直接在每個 FamilyMember 實例上附加 role_label / is_owner_member 屬性供 template 顯示，不寫入資料庫。
     """
-    for index, member in enumerate(family_members):
-        if index == 0:
-            member.is_owner_member = True
-            member.role_label = '養育者'
-        else:
-            member.is_owner_member = False
-            member.role_label = '協助者'
+    for member in family_members:
+        is_owner = (case_owner_id is not None and member.user_id == case_owner_id)
+        member.is_owner_member = is_owner
+        member.role_label = '養育者' if is_owner else '協助者'
     return family_members
 
 
@@ -142,6 +138,7 @@ def userprofile(request):
     case = resolve_active_pregnancy_case(request, current_user)
     family_members = []
     pending_count = 0
+    pending_members = []
     can_manage_helpers = False
     is_case_owner = False
     if case:
@@ -151,12 +148,15 @@ def userprofile(request):
             .select_related('user')
             .order_by('join_time')
         )
-        _annotate_family_roles(family_members)
+        _annotate_family_roles(family_members, case_owner_id=case.user_id)
         is_case_owner = bool(case and case.user_id == current_user.user_id)
         can_manage_helpers = is_case_owner
         if is_case_owner:
-            pending_count = len(join_request.get_pending_requests(case.pregnancycase_id))
-
+            pending_reqs = join_request.get_pending_requests(case.pregnancycase_id)
+            pending_count = len(pending_reqs)
+            pending_members = pending_reqs
+        else:
+            pending_members = []
 
     return render(request, 'user/userprofile.html', {
         'current_user': current_user,
@@ -164,6 +164,7 @@ def userprofile(request):
         'selected_child_info': selected_child_info,
         'family_members': family_members,
         'pending_count': pending_count,
+        'pending_members': pending_members,
         'can_manage_helpers': can_manage_helpers,
         'is_case_owner': is_case_owner,
     })
@@ -207,7 +208,9 @@ def join_family(request):
     active_case = resolve_active_pregnancy_case(request, current_user)
     family_members = []
     pending_count = 0
+    pending_members = []
     can_manage_helpers = False
+    is_case_owner = False
     if active_case:
         family_members = list(
             FamilyMember.objects
@@ -215,11 +218,13 @@ def join_family(request):
             .select_related('user')
             .order_by('join_time')
         )
-        _annotate_family_roles(family_members)
-        can_manage_helpers = (active_case.user_id == current_user.user_id)
+        _annotate_family_roles(family_members, case_owner_id=active_case.user_id)
+        is_case_owner = (active_case.user_id == current_user.user_id)
+        can_manage_helpers = is_case_owner
         if can_manage_helpers:
-            pending_count = len(join_request.get_pending_requests(active_case.pregnancycase_id))
-
+            pending_reqs = join_request.get_pending_requests(active_case.pregnancycase_id)
+            pending_count = len(pending_reqs)
+            pending_members = pending_reqs
 
     return render(request, 'user/userprofile.html', {
         'current_user': current_user,
@@ -229,7 +234,9 @@ def join_family(request):
         'join_error': join_error,
         'join_success': join_success,
         'pending_count': pending_count,
+        'pending_members': pending_members,
         'can_manage_helpers': can_manage_helpers,
+        'is_case_owner': is_case_owner,
     })
 
 
