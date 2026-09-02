@@ -11,8 +11,9 @@ from views import baby_utils
 def _parse_permissions_from_post(post_data, prefix='perm_'):
     result = {}
     for key in baby_utils.FEATURE_KEYS:
-        value = (post_data.get(f'{prefix}{key}') or 'view').strip()
-        result[key] = value if value in baby_utils.PERMISSION_LEVELS else 'view'
+        default = 'off' if key == 'mom_records' else 'view'
+        value = (post_data.get(f'{prefix}{key}') or default).strip()
+        result[key] = value if value in baby_utils.PERMISSION_LEVELS else default
     return result
 
 
@@ -118,13 +119,15 @@ def edit_family_member(request):
                     target_user = UserProfile.objects.filter(user_id=req_id).first()
                     if target_user:
                         with transaction.atomic():
+                            default_perms = {key: 'view' for key in baby_utils.FEATURE_KEYS}
+                            default_perms['mom_records'] = 'off'
                             FamilyMember.objects.create(
                                 pregnancycase=case,
                                 user=target_user,
-                                permissions={key: 'view' for key in baby_utils.FEATURE_KEYS},
+                                permissions=default_perms,
                             )
                             join_request.remove_request(case.pregnancycase_id, req_id)
-                        add_success = f'已同意「{target_user.name}」加入，預設權限為全部檢視，可再調整。'
+                        add_success = f'已同意「{target_user.name}」加入，養育者記錄預設關閉，可至管理頁調整。'
                         members = list(
                             FamilyMember.objects.filter(pregnancycase_id=case)
                             .select_related('user').order_by('join_time')

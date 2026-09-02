@@ -12,14 +12,12 @@
 </style>
 {% endblock %}
 {% block content %}
-    <!-- Header Section -->
-    <header class="justify-between fixed top-0 w-full z-50 backdrop-blur-md flex items-center px-6 h-16 lg:px-16 xl:px-32 2xl:px-64" style="margin-top: 80px;">
-        <div class="flex items-center gap-3">
-            <a href="/userprofile/" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
-                <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;">arrow_back</span>
-                <span class="text-lg font-bold text-primary">修改協助者權限</span>
-            </a>
-        </div>
+<div class="bg-surface text-on-surface">
+    <header class="bg-surface/70 backdrop-blur-md px-4 py-4 w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64">
+        <button onclick="window.history.back()" class="inline-flex items-center gap-2 rounded-full p-2 hover:bg-surface-container-low transition-colors active:scale-95 duration-200" aria-label="返回">
+            <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings:'FILL' 1,'wght' 700,'GRAD' 0,'opsz' 24;">arrow_back</span>
+            <span class="text-lg font-bold text-primary">協助者管理</span>
+        </button>
     </header>
 
     <main class="pt-2 pb-32 px-4 mx-auto max-w-md md:max-w-none w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64 space-y-6">
@@ -136,7 +134,7 @@
                             {% endwith %}
 
                             <!-- 養育者記錄：關閉/檢視/修改（最私密，支援完全隱藏） -->
-                            {% with cur=member.permissions.mom_records|default:"view" %}
+                            {% with cur=member.permissions.mom_records|default:"off" %}
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-sm font-medium text-on-surface flex items-center gap-1.5 shrink-0">
                                     <span class="material-symbols-outlined text-on-surface-variant text-[17px]">pregnant_woman</span>養育者記錄

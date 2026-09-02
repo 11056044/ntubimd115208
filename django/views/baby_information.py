@@ -123,81 +123,80 @@ def edit_baby_information(request):
             return redirect('babyinformation')
 
     if request.method == 'POST':
-        # 只允許修改名稱
-        if (request.POST.get('baby_name') or '').strip():
-            active_baby.name = request.POST.get('baby_name').strip()
+        # 名稱永遠可改
+        name = (request.POST.get('baby_name') or '').strip()
+        if name:
+            active_baby.name = name
 
-        # 已有出生時間：出生數據不可再修改
-        birth_locked = active_baby.birthdaytime is not None
+        # 逐欄位鎖定（有值 = 已填過，不再覆蓋）
+        dt_locked = active_baby.birthdaytime is not None
+        wt_locked = active_baby.baby_weight is not None
+        ht_locked = active_baby.baby_height is not None
+        hc_locked = active_baby.babyheadcircumference is not None
+        cc_locked = active_baby.chestcircumference is not None
+        pm_locked = bool(active_baby.production_method)
 
-        if not birth_locked:
-            new_birthdaytime = None
-            if (request.POST.get('birthdaytime') or '').strip():
+        lmp = active_baby.pregnancycase.menstruation if active_baby.pregnancycase else None
+        join_code = getattr(active_baby.pregnancycase, 'code', '') if active_baby.pregnancycase_id else ''
+        lmp_str = lmp.strftime('%Y-%m-%d') if lmp else ''
+
+        def _err(msg):
+            return render(request, 'baby/edit_babyinformation.html', {
+                'baby': active_baby,
+                'error': msg,
+                'birthdaytime_value': request.POST.get('birthdaytime', ''),
+                'join_code': join_code,
+                'lmp_date_value': lmp_str,
+                'birth_weeks_value': '',
+                'locks': {
+                    'birthdaytime': dt_locked, 'baby_weight': wt_locked,
+                    'baby_height': ht_locked, 'babyheadcircumference': hc_locked,
+                    'chestcircumference': cc_locked, 'production_method': pm_locked,
+                },
+            })
+
+        # 出生時間
+        if not dt_locked:
+            raw_dt = (request.POST.get('birthdaytime') or '').strip()
+            if raw_dt:
                 try:
-                    new_birthdaytime = timezone.make_aware(datetime.datetime.strptime(request.POST.get('birthdaytime').strip(), '%Y-%m-%dT%H:%M'))
+                    new_dt = timezone.make_aware(
+                        datetime.datetime.strptime(raw_dt, '%Y-%m-%dT%H:%M'))
                 except ValueError:
-                    return render(request, 'baby/edit_babyinformation.html', {
-                        'baby': active_baby,
-                        'error': '日期時間格式不正確',
-                        'birthdaytime_value': request.POST.get('birthdaytime'),
-                        'join_code': getattr(active_baby.pregnancycase, 'code', '') if active_baby.pregnancycase_id else '',
-                        'lmp_date_value': active_baby.pregnancycase.menstruation.strftime('%Y-%m-%d') if active_baby.pregnancycase and active_baby.pregnancycase.menstruation else '',
-                        'birth_weeks_value': '',
-                        'birth_locked': False,
-                    })
-
-            if new_birthdaytime:
-                lmp = active_baby.pregnancycase.menstruation if active_baby.pregnancycase else None
-                birth_error = validate_birth_datetime(lmp, new_birthdaytime)
+                    return _err('日期時間格式不正確')
+                birth_error = validate_birth_datetime(lmp, new_dt)
                 if birth_error:
-                    lmp_date_value = lmp.strftime('%Y-%m-%d') if lmp else ''
-                    return render(request, 'baby/edit_babyinformation.html', {
-                        'baby': active_baby,
-                        'error': birth_error,
-                        'birthdaytime_value': request.POST.get('birthdaytime'),
-                        'join_code': getattr(active_baby.pregnancycase, 'code', '') if active_baby.pregnancycase_id else '',
-                        'lmp_date_value': lmp_date_value,
-                        'birth_weeks_value': '',
-                        'birth_locked': False,
-                    })
-                active_baby.birthdaytime = new_birthdaytime
+                    return _err(birth_error)
+                active_baby.birthdaytime = new_dt
 
-            w  = baby_utils.parse_float(request.POST.get('birth_weight'))
-            h  = baby_utils.parse_float(request.POST.get('birth_height'))
-            hc = baby_utils.parse_float(request.POST.get('birth_head'))
-            cc = baby_utils.parse_float(request.POST.get('birth_chest'))
-            vital_error = baby_utils.validate_birth_vitals(w, h, hc, cc)
-            if vital_error:
-                lmp = active_baby.pregnancycase.menstruation if active_baby.pregnancycase else None
-                return render(request, 'baby/edit_babyinformation.html', {
-                    'baby': active_baby,
-                    'error': vital_error,
-                    'birthdaytime_value': request.POST.get('birthdaytime'),
-                    'join_code': getattr(active_baby.pregnancycase, 'code', '') if active_baby.pregnancycase_id else '',
-                    'lmp_date_value': lmp.strftime('%Y-%m-%d') if lmp else '',
-                    'birth_weeks_value': '',
-                    'birth_locked': False,
-                })
+        # 出生體徵（未鎖定的欄位才解析）
+        w  = None if wt_locked else baby_utils.parse_float(request.POST.get('birth_weight'))
+        h  = None if ht_locked else baby_utils.parse_float(request.POST.get('birth_height'))
+        hc = None if hc_locked else baby_utils.parse_float(request.POST.get('birth_head'))
+        cc = None if cc_locked else baby_utils.parse_float(request.POST.get('birth_chest'))
 
-            active_baby.baby_weight           = w
-            active_baby.baby_height           = h
-            active_baby.babyheadcircumference = hc
-            active_baby.chestcircumference    = cc
-            if (request.POST.get('production_method') or '').strip():
-                active_baby.production_method = request.POST.get('production_method').strip()
+        vital_error = baby_utils.validate_birth_vitals(w, h, hc, cc)
+        if vital_error:
+            return _err(vital_error)
+
+        if w  is not None: active_baby.baby_weight           = w
+        if h  is not None: active_baby.baby_height           = h
+        if hc is not None: active_baby.babyheadcircumference = hc
+        if cc is not None: active_baby.chestcircumference    = cc
+        if not pm_locked:
+            pm = (request.POST.get('production_method') or '').strip()
+            if pm:
+                active_baby.production_method = pm
 
         active_baby.save()
         return redirect('babyinformation')
 
-    # ── GET 請求階段資料渲染 ──────────────────────────────────────────
+    # ── GET 請求 ──────────────────────────────────────────────────────
     lmp_date_value = ''
     birth_weeks_value = ''
-
     if active_baby.pregnancycase and active_baby.pregnancycase.menstruation:
         lmp_date_value = active_baby.pregnancycase.menstruation.strftime('%Y-%m-%d')
-
     if active_baby.birthdaytime and active_baby.pregnancycase and active_baby.pregnancycase.menstruation:
-        # 呼叫重構後的共用核心，確保前後端計算完全一致
         birth_weeks_value = baby_utils.get_birth_week(active_baby) or ''
 
     birthdaytime_value = active_baby.birthdaytime.strftime('%Y-%m-%dT%H:%M') if active_baby.birthdaytime else ''
@@ -207,7 +206,14 @@ def edit_baby_information(request):
         'baby': active_baby,
         'birthdaytime_value': birthdaytime_value,
         'join_code': join_code,
-        'lmp_date_value':    lmp_date_value,
+        'lmp_date_value': lmp_date_value,
         'birth_weeks_value': birth_weeks_value,
-        'birth_locked': active_baby.birthdaytime is not None,
+        'locks': {
+            'birthdaytime':       active_baby.birthdaytime is not None,
+            'baby_weight':        active_baby.baby_weight is not None,
+            'baby_height':        active_baby.baby_height is not None,
+            'babyheadcircumference': active_baby.babyheadcircumference is not None,
+            'chestcircumference': active_baby.chestcircumference is not None,
+            'production_method':  bool(active_baby.production_method),
+        },
     })
