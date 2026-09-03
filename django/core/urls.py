@@ -19,6 +19,7 @@ from views import (
     ai_growth,
     social_sharing_card,
     history_review,
+	a
 )
 
 
@@ -313,4 +314,9 @@ urlpatterns = [
         history_review.history_review,
         name='history_review_alias'
     ),
+		# ------------------------
+	path('1/',a.ai_growth,name='1'),
+	path('m/',a.m,name='m'),
+	path('s/',a.s,name='s'),
+
 ]
