@@ -339,36 +339,36 @@ urlpatterns = [
 
 
     # ======================
-    # 歷史回顧（第一版）
+    # 歷史回顧（自動重定向至最新版）
     # ======================
     path(
         'history-review/',
-        history_review.history_review,
+        history_review_v3.v3_timeline,
         name='history_review'
     ),
     path(
         'history-review/pregnancy-journey/',
-        history_review.pregnancy_journey_view,
+        history_review_v3.v3_timeline,
         name='history_pregnancy_journey'
     ),
     path(
         'history-review/baby-growth/',
-        history_review.baby_growth_view,
+        history_review_v3.v3_baby_growth,
         name='history_baby_growth'
     ),
     path(
         'history-review/memory-wall/',
-        history_review.memory_wall_view,
+        history_review_v3.v3_memory_wall,
         name='history_memory_wall'
     ),
     path(
         'history-review/ai-growth-journey/',
-        history_review.ai_growth_journey_view,
+        history_review_v3.v3_timeline,
         name='history_ai_growth_journey'
     ),
     path(
         'history-review/phase-review/',
-        history_review.ai_growth_journey_view,
+        history_review_v3.v3_timeline,
         name='history_phase_review'
     ),
     path(
@@ -378,7 +378,7 @@ urlpatterns = [
     ),
     path(
         'history_review/',
-        history_review.history_review,
+        history_review_v3.v3_timeline,
         name='history_review_alias'
     ),
 
