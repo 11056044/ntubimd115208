@@ -144,12 +144,12 @@
                     </div>
                     {% endwith %}
 
-                    <!-- Feature 4: 照護提醒 -->
+                    <!-- Feature 4: 待辦清單 -->
                     {% with current=selected_member.permissions.care_records|default:"view" %}
                     <div class="flex flex-col gap-3">
                         <label class="text-sm font-bold text-on-surface flex items-center gap-2">
                             <span class="material-symbols-outlined text-on-surface-variant text-[18px]">checklist</span>
-                            照護提醒
+                            待辦清單
                         </label>
                         <div class="flex bg-surface-container-low rounded-xl p-1 w-full relative" data-feature="care_records">
                             <button type="button" class="seg-btn flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer {% if current != 'edit' %}active{% endif %}" data-value="view">檢視</button>
