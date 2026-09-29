@@ -176,56 +176,59 @@ def _create_user_profile(name, email, line_id='', avatar=''):
 
 @receiver(user_logged_in)
 def handle_allauth_login_success(request, user, **kwargs):
-    social_account = SocialAccount.objects.filter(user=user).first()
-    if not social_account:
+    social_accounts = SocialAccount.objects.filter(user=user)
+    if not social_accounts.exists():
         return
 
-    provider = str(social_account.provider)
-    extra_data = social_account.extra_data
-
-    email = ''
+    # 初始化收集的資料
+    provider_names = []
+    line_user_id = ''
     raw_name = ''
     picture = ''
-    line_user_id = ''
+    email = ''
 
-    # 🌟 智慧判斷來源，不再死守 'line' 字串
-    is_google = (provider == 'google')
-    is_line = (provider == 'line' or provider == '2010267631' or extra_data.get('iss') == 'https://access.line.me')
+    for social_account in social_accounts:
+        provider = str(social_account.provider)
+        provider_names.append(provider)
+        extra_data = social_account.extra_data or {}
+        
+        is_line = (provider == 'line' or provider == '2010267631' or extra_data.get('iss') == 'https://access.line.me')
+        if is_line:
+            # 優先使用 LINE 的資料（因為我們急需寫入 line_id）
+            line_user_id = extra_data.get('sub') or extra_data.get('userId') or social_account.uid
+            raw_name = extra_data.get('name', '') or extra_data.get('displayName', '') or raw_name
+            picture = extra_data.get('picture', '') or extra_data.get('pictureUrl', '') or picture
+            email = extra_data.get('email', '') or email
+        elif provider == 'google' and not line_user_id:
+            # 如果還沒有 LINE 資料，先用 Google 的（但不覆寫 LINE 已經拿到的）
+            raw_name = extra_data.get('name', '') or raw_name
+            picture = extra_data.get('picture', '') or picture
+            email = extra_data.get('email', '') or email
 
-    if is_google:
-        email = extra_data.get('email', '')
-        raw_name = extra_data.get('name', '')
-        picture = extra_data.get('picture', '')
-    elif is_line:
-        email = extra_data.get('email', '')
-        # 🎯 根據 Log 顯示，抓取 LINE 人名與頭像（支援不同 allauth provider 格式）
-        raw_name = extra_data.get('name', '') or extra_data.get('displayName', '')
-        picture = extra_data.get('picture', '') or extra_data.get('pictureUrl', '')
-        line_user_id = extra_data.get('sub') or extra_data.get('userId') or social_account.uid
-
+    # 確保 email 一定有值（如果是 LINE 可能沒有提供，使用佔位）
     if not email:
-        email = f"{line_user_id or social_account.uid}@line.platform"
+        email = f"{line_user_id or user.username}@line.platform"
+
     display_name = (raw_name or email.split('@')[0])[:20]
+    
+    is_line_login = any(p in provider_names for p in ['line', '2010267631']) or bool(line_user_id)
 
     try:
         user_profile = _user_profile_by_email(email)
-        if not user_profile and is_line and line_user_id:
+        if not user_profile and is_line_login and line_user_id:
             user_profile = UserProfile.objects.filter(line_id=line_user_id).order_by('user_id').first()
 
         if not user_profile:
             user_profile = _create_user_profile(
                 name=display_name,
                 email=email,
-                line_id=line_user_id if is_line else '',
+                line_id=line_user_id if is_line_login else '',
                 avatar=picture or '',
             )
         else:
             # 已存在的 UserProfile：不覆寫 name/avatar/email 等既有資料，
-            # 只有 LINE 登入且 line_id 欄位目前是空的情況下才補寫入，
-            # 讓「是否已綁定 LINE」的狀態能正確判斷。
-            # （Google 這邊因為是直接用 email 完全比對找到帳號，比對到時
-            # email 本來就已經等於這次登入的 email，不需要再補寫。）
-            if is_line and line_user_id and not user_profile.line_id:
+            # 只要有取得 LINE ID 且目前 line_id 欄位是空的情況下就補寫入，
+            if line_user_id and not user_profile.line_id:
                 with transaction.atomic():
                     user_profile.line_id = line_user_id
                     user_profile.save(update_fields=['line_id'])
@@ -333,6 +336,22 @@ def google_auth_login(request):
     # 沒有這一步，allauth 的「帳號綁定 (process=connect)」流程會找不到目前登入的使用者，
     # 導致點擊「綁定 Google/LINE」時出現「第三方帳號登入失敗」。
     _sync_django_auth_session(request, user_profile)
+    
+    # 手動補齊 allauth 的 SocialAccount，讓之後所有的綁定狀態判斷一致
+    sub = idinfo.get('sub')
+    if sub and getattr(request, 'user', None) and request.user.is_authenticated:
+        try:
+            from allauth.socialaccount.models import SocialAccount
+            SocialAccount.objects.get_or_create(
+                user=request.user,
+                provider='google',
+                defaults={
+                    'uid': sub,
+                    'extra_data': idinfo,
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Google GSI 登入建立 SocialAccount 失敗: {e}")
 
     request.session['user_id'] = str(user_profile.user_id)
     request.session['user_email'] = user_profile.email

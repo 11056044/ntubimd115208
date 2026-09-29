@@ -104,7 +104,8 @@
                     {% endif %}
                 </div>
 
-                <!-- Google 帳號 -->
+                <!-- Google 帳號 (僅在非 LINE 預設信箱，或已綁定 Google 時顯示) -->
+                {% if current_user.google_linked or not current_user.is_line_placeholder_email %}
                 <div class="flex items-center justify-between p-4 bg-surface-container-low/50 rounded-2xl">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-full bg-white border border-surface-container-high shadow-sm flex items-center justify-center shrink-0">
@@ -131,6 +132,7 @@
                     </a>
                     {% endif %}
                 </div>
+                {% endif %}
             </div>
         </section>
         <!-- 待審核的加入申請：列出我「所有」胎數的申請，不是只有目前選取的那一個 -->
@@ -144,7 +146,7 @@
             </div>
             <div class="p-4 space-y-2">
                 {% for req in pending_members %}
-                <div class="p-4 bg-surface-container-low/50 rounded-2xl space-y-3">
+                <div class="p-4 bg-surface-container-low/50 rounded-lg space-y-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 overflow-hidden">
                             {% if req.applicant.avatar_url %}
@@ -240,7 +242,7 @@
         {% endif %}
 
         <!-- 輸入加入碼小方框 -->
-        <section class="bg-surface-container-lowest rounded-xl shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
+        <section class="bg-surface-container-lowest rounded-lg shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
             <form method="post" action="{% url 'join_family' %}" class="flex items-center gap-3 px-5 py-4">
                 {% csrf_token %}
                 <span class="material-symbols-outlined text-primary text-[22px] shrink-0">vpn_key</span>
@@ -259,7 +261,7 @@
 
         <!-- 我送出的加入申請（可撤回） -->
         {% if my_join_requests %}
-        <section class="bg-surface-container-lowest rounded-xl shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
+        <section class="bg-surface-container-lowest rounded-lg shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
             <div class="px-5 py-4 border-b border-surface-container-high/50">
                 <h3 class="font-bold text-on-surface text-sm">等待審核的申請</h3>
                 <p class="text-[11px] text-on-surface-variant font-medium mt-0.5">養育者同意後才會成為協助者</p>
@@ -289,9 +291,9 @@
 
         <!-- 我以協助者身分加入的家庭（可退出） -->
         {% if my_memberships %}
-        <section class="bg-surface-container-lowest rounded-xl shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
-            <div class="px-5 py-4 border-b border-surface-container-high/50">
-                <h3 class="font-bold text-on-surface text-sm">我協助的家庭</h3>
+        <section class="bg-surface-container-lowest rounded-lg shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
+            <div class="p-6 pb-4 border-b border-surface-container-high/50">
+                <h3 class="font-bold text-on-surface text-base">我協助的家庭</h3>
                 <p class="text-[11px] text-on-surface-variant font-medium mt-0.5">退出後將無法再檢視該家庭的紀錄</p>
             </div>
             <div class="p-4 space-y-2">
@@ -320,7 +322,7 @@
         {% endif %}
 
         <!-- 連絡方式 / 官方客服與支援 -->
-        <section class="bg-surface-container-lowest rounded-2xl shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
+        <section class="bg-surface-container-lowest rounded-lg shadow-[0_8px_24px_rgba(46,47,45,0.06)] overflow-hidden border border-surface-container-high">
             <div class="p-6 pb-4 border-b border-surface-container-high/50 flex justify-between items-center">
                 <div class="space-y-0.5">
                     <h3 class="font-bold text-on-surface text-base flex items-center gap-2">
