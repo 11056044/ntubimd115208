@@ -157,11 +157,11 @@
                             </div>
                             {% endwith %}
 
-                            <!-- 代辦清單：檢視/修改 -->
+                            <!-- 待辦清單：檢視/修改 -->
                             {% with cur=member.permissions.care_records|default:"view" %}
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-sm font-medium text-on-surface flex items-center gap-1.5 shrink-0">
-                                    <span class="material-symbols-outlined text-on-surface-variant text-[17px]">checklist</span>代辦清單
+                                    <span class="material-symbols-outlined text-on-surface-variant text-[17px]">checklist</span>待辦清單
                                 </span>
                                 <div class="flex bg-surface-container-low rounded-xl p-0.5 shrink-0" data-feature="care_records" data-member="{{ mid }}">
                                     <button type="button" class="seg-btn px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer {% if cur != 'edit' %}active{% endif %}" data-value="view">檢視</button>

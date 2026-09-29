@@ -157,7 +157,7 @@ def index(request):
     can_view_care = True
     can_edit_care = True
     is_case_owner = bool(pregnancy_case and pregnancy_case.user_id == current_user.user_id)
-    #哪位user新增的代辦清單
+    #哪位user新增的待辦清單
     care_queryset = CareRecord.objects.select_related('carestatus', 'user').order_by('recordtime', 'carerecord_id')
     if pregnancy_case:
         if not is_case_owner:

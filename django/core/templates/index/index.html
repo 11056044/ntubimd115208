@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/index.css' %}">
 {% endblock %}
 {% block content %}
-    <main class="mx-auto pb-12 max-w-md md:max-w-none w-full transition-all duration-500 ease-in-out md:px-8 lg:px-16 xl:px-32 2xl:px-64">
+    <main class="mx-auto pb-28 md:pb-20 max-w-md md:max-w-none w-full transition-all duration-500 ease-in-out md:px-8 lg:px-16 xl:px-32 2xl:px-64">
         <!-- Welcome Section -->
         <section class="px-6 py-6 flex justify-between items-end">
             <div class="space-y-1">
@@ -360,9 +360,17 @@
 
         <!-- Floating Join Code Button：加入碼只顯示給個案擁有者，協助者不需要也不該看到 -->
         {% if is_case_owner %}
-        <div class="join">
-            <span class="material-symbols-outlined text-base">vpn_key</span>
+        <div class="join"
+             onclick="if ('{{ pregnancy_case.code }}') { navigator.clipboard.writeText('{{ pregnancy_case.code }}').then(() => { const t = document.getElementById('join-copy-toast'); if (t) { t.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none'), 2000); } }); }"
+             title="點擊可複製加入碼"
+             role="button"
+             tabindex="0">
+            <span class="material-symbols-outlined text-sm">vpn_key</span>
             <span class="font-bold text-[10px] tracking-wide">加入碼: {{ pregnancy_case.code|default:'尚未建立' }}</span>
+        </div>
+        <!-- 複製加入碼成功提示 Toast -->
+        <div id="join-copy-toast" class="fixed bottom-24 right-4 z-50 bg-[#362459] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg opacity-0 pointer-events-none transition-all duration-300">
+            已複製加入碼！
         </div>
         {% endif %}
 
