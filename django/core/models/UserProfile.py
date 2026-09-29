@@ -28,10 +28,35 @@ class UserProfile(models.Model):
     def line_name(self, value):
         self.line_id = value
 
-    @property
+    @cached_property
     def line_linked(self):
         """是否已綁定 LINE 帳號（無論是登入用或後續額外綁定）"""
-        return bool(self.line_id)
+        if self.line_id:
+            return True
+            
+        email = (self.email or '').strip()
+        if not email:
+            return False
+            
+        try:
+            from django.contrib.auth import get_user_model
+            from allauth.socialaccount.models import SocialAccount
+
+            User = get_user_model()
+            auth_user_ids = list(
+                User.objects
+                .filter(models.Q(username=email) | models.Q(email=email))
+                .values_list('id', flat=True)
+            )
+            if not auth_user_ids:
+                return False
+                
+            return SocialAccount.objects.filter(
+                user_id__in=auth_user_ids,
+                provider='line',
+            ).exists()
+        except Exception:
+            return False
 
     # ------------------------------------------------------------------
     # 頭像：avatar 欄位是 unique=True，沒有頭像的人不能一律存空字串
@@ -81,16 +106,30 @@ class UserProfile(models.Model):
             from allauth.socialaccount.models import SocialAccount
 
             User = get_user_model()
-            auth_user_ids = list(
+            auth_users = list(
                 User.objects
                 .filter(models.Q(username=email) | models.Q(email=email))
-                .values_list('id', flat=True)
             )
-            if not auth_user_ids:
+            if not auth_users:
                 return False
-            return SocialAccount.objects.filter(
+                
+            auth_user_ids = [u.id for u in auth_users]
+            
+            has_google_social = SocialAccount.objects.filter(
                 user_id__in=auth_user_ids,
                 provider='google',
             ).exists()
+            
+            if has_google_social:
+                return True
+                
+            # 相容舊有的原生 Google GSI 登入 API：
+            # GSI 登入時會透過 `get_or_create` 建立 `auth.User`，此時 password 會是空字串 ''，且沒有 SocialAccount。
+            # 而透過 allauth 建立的帳號（例如 LINE 登入），password 會被設為不可用密碼（以 '!' 開頭）。
+            for u in auth_users:
+                if u.password == '':
+                    return True
+                    
+            return False
         except Exception:
             return False
