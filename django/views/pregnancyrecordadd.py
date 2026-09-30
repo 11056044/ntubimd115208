@@ -12,6 +12,7 @@ from views.pregnancycase import resolve_active_pregnancy_case, url_with_active_s
 from views.session_utils import get_current_user_profile
 from views import baby_utils
 from views.upload_utils import InvalidImageError, safe_image_name, validate_image_upload
+from views.supabase_storage import upload_image, delete_image
 from core.models import FamilyMember
 
 
@@ -106,27 +107,21 @@ MARKER_VALUE_MAP = {
 MARKER_LABEL_TO_VALUE = {value: key for key, value in MARKER_VALUE_MAP.items()}
 
 
-def _save_prenatal_photo(image_file):
-    if not image_file:
-        return ''
-    # 副檔名與檔名都不採用使用者輸入，避免 .html / .svg 造成儲存型 XSS
-    ext = validate_image_upload(image_file)
-    storage = FileSystemStorage(
-        location=settings.BASE_DIR / 'core' / 'static' / 'media',
-        base_url='/static/media/',
-    )
-    filename = storage.save(f'prenatalrecord/{safe_image_name(ext)}', image_file)
-    return storage.url(filename)
-
-
 def _delete_prenatal_photo(photo_url):
+    """刪除產檢照片。Supabase 網址 → 刪 Storage；舊的本機 /static/media/ 路徑 → 刪本機檔。"""
     if not photo_url:
         return
+    photo_url = str(photo_url)
+    if photo_url.startswith(('http://', 'https://')):
+        delete_image(photo_url)
+        return
+
+    # ── 舊資料相容：本機 static/media 檔案 ──
     storage = FileSystemStorage(
         location=settings.BASE_DIR / 'core' / 'static' / 'media',
         base_url='/static/media/',
     )
-    relative_name = str(photo_url)
+    relative_name = photo_url
     if relative_name.startswith('/static/media/'):
         relative_name = relative_name[len('/static/media/'):]
     elif relative_name.startswith('static/media/'):
@@ -134,8 +129,7 @@ def _delete_prenatal_photo(photo_url):
     elif relative_name.startswith('/static/'):
         relative_name = relative_name[len('/static/'):]
     relative_name = relative_name.lstrip('/')
-    # 只允許刪除 prenatalrecord/ 底下的檔案；photo 欄位是資料庫字串，
-    # 若被塞入 ../ 或其他目錄，這裡必須擋掉，不能讓它刪到別的檔案。
+    # 只允許刪除 prenatalrecord/ 底下的檔案，擋掉 ../ 等路徑穿越
     if not relative_name.startswith('prenatalrecord/'):
         return
     if '..' in relative_name.replace('\\', '/').split('/'):
@@ -144,7 +138,7 @@ def _delete_prenatal_photo(photo_url):
 
 
 def _delete_prenatal_records_for(pregnancyrecord_ids):
-    """刪除產檢紀錄時一併清掉實體照片檔，避免 media 目錄堆積孤兒檔案。"""
+    """刪除產檢紀錄時一併清掉照片（Supabase 或舊本機檔），避免孤兒檔案。"""
     if not pregnancyrecord_ids:
         return
     rows = Prenatalrecord.objects.filter(pregnancyrecord_id__in=pregnancyrecord_ids)
@@ -153,21 +147,13 @@ def _delete_prenatal_records_for(pregnancyrecord_ids):
     rows.delete()
 
 
-def _store_prenatal_photo(image_file, prenatalrecord_id, existing_photo=''):
-    if not image_file or not prenatalrecord_id:
+def _replace_prenatal_photo(new_photo_url, existing_photo=''):
+    """新圖已上傳到 Supabase 後呼叫：刪掉舊圖並回傳新網址；沒有新圖則保留舊圖。"""
+    if not new_photo_url:
         return existing_photo or ''
-
-    # 安全性修正：副檔名一律由檔案內容決定，不採用使用者檔名。
-    # 舊版接受任意副檔名並存進 /static/media/，上傳 .html / .svg 即成儲存型 XSS。
-    ext = validate_image_upload(image_file)
-
-    storage = FileSystemStorage(
-        location=settings.BASE_DIR / 'core' / 'static' / 'media',
-        base_url='/static/media/',
-    )
-    _delete_prenatal_photo(existing_photo)
-    filename = storage.save(f'prenatalrecord/{prenatalrecord_id}{ext}', image_file)
-    return storage.url(filename)
+    if existing_photo and existing_photo != new_photo_url:
+        _delete_prenatal_photo(existing_photo)
+    return new_photo_url
 
 
 def _parse_int_in_range(raw_value, value_range, label, errors):
@@ -224,18 +210,7 @@ def pregnancyrecord(request):
         selected_date = None
 
     if not selected_date:
-        scope_records = _records_for_scope(pregnancy_case, current_user)
-        has_this_month = scope_records.filter(
-            check_date__year=today_date.year, check_date__month=today_date.month
-        ).exists()
-        if has_this_month:
-            selected_date = today_date
-        else:
-            latest_rec = scope_records.order_by('-check_date').first()
-            if latest_rec and latest_rec.check_date:
-                selected_date = latest_rec.check_date
-            else:
-                selected_date = today_date
+        selected_date = today_date
 
     year = selected_date.year
     month = selected_date.month
@@ -537,6 +512,7 @@ def pregnancyrecord_add(request):
                     weight_val = None
                     errors.append(f'體重合理範圍為 {lo:g} ~ {hi:g} kg。')
 
+        uploaded_photo_url = ''
         sbp_val = dbp_val = fetal_val = None
         if official_record_enabled:
             sbp_val = _parse_int_in_range(request.POST.get('sbp'), SBP_RANGE, '收縮壓', errors)
@@ -547,6 +523,12 @@ def pregnancyrecord_add(request):
             if uploaded_photo:
                 try:
                     validate_image_upload(uploaded_photo)
+                    # 其他欄位都通過才真正上傳，避免驗證失敗留下孤兒檔
+                    if not errors:
+                        uploaded_photo_url = upload_image(
+                            uploaded_photo,
+                            folder=f'prenatal_records/{pregnancy_case.pk if pregnancy_case else "user_" + str(current_user.pk)}',
+                        ) or ''
                 except InvalidImageError as exc:
                     errors.append(str(exc))
 
@@ -648,10 +630,9 @@ def pregnancyrecord_add(request):
                     latest_prenatal.urine_glucose = urine_glucose
                     latest_prenatal.urine_protein = urine_protein
                     latest_prenatal.edema = edema
-                    if uploaded_photo:
-                        latest_prenatal.photo = _store_prenatal_photo(
-                            uploaded_photo,
-                            latest_prenatal.prenatalrecord_id,
+                    if uploaded_photo_url:
+                        latest_prenatal.photo = _replace_prenatal_photo(
+                            uploaded_photo_url,
                             existing_photo,
                         )
                     latest_prenatal.save()
@@ -664,15 +645,8 @@ def pregnancyrecord_add(request):
                         urine_glucose=urine_glucose,
                         urine_protein=urine_protein,
                         edema=edema,
-                        photo='',
+                        photo=uploaded_photo_url,
                     )
-                    if uploaded_photo:
-                        latest_prenatal.photo = _store_prenatal_photo(
-                            uploaded_photo,
-                            latest_prenatal.prenatalrecord_id,
-                            '',
-                        )
-                        latest_prenatal.save(update_fields=['photo'])
             else:
                 # 關閉產檢紀錄時一併清掉實體照片檔
                 _delete_prenatal_records_for([preg.pregnancyrecord_id])
@@ -749,5 +723,3 @@ def pregnancyrecord_add(request):
         'selected_day_record_id': selected_day_record.pregnancyrecord_id if selected_day_record else None,
     }
     return render(request, 'pregnancy/pregnancyrecordadd.html', context)
-
-

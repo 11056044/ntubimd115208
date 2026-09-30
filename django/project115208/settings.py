@@ -153,6 +153,10 @@ DATABASES = {
     },
 }
 
+SUPABASE_URL = os.environ['SUPABASE_URL']
+SUPABASE_SERVICE_KEY = os.environ['SUPABASE_SERVICE_KEY']
+SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET', 'photo')
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -199,6 +203,7 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
+CSRF_TRUSTED_ORIGINS = ["https://cologrowth.ntubimdbirc.tw", ]
 
 LOGGING = {
     'version': 1,
