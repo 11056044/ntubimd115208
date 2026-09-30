@@ -2,25 +2,25 @@ from datetime import timedelta
 from core.models import PregnancyRecord, PregnancyCase
 
 
-def records_for_case(pregnancy_case):
-    if not pregnancy_case or not pregnancy_case.user_id:
-        return PregnancyRecord.objects.none()
+def case_date_window(pregnancy_case):
+    """回傳這個個案的紀錄日期區間 (start, end)；None 代表該側不設限。
 
-    user_id = pregnancy_case.user_id
+    從 records_for_case 抽出來，讓清理舊資料的指令可以共用同一套區間判斷。
+    """
+    if not pregnancy_case or not pregnancy_case.user_id:
+        return None, None
+
     cases = list(
-        PregnancyCase.objects.filter(user_id=user_id)
+        PregnancyCase.objects.filter(user_id=pregnancy_case.user_id)
         .order_by('menstruation', 'pregnancycase_id')
     )
     if len(cases) <= 1:
-        qs = PregnancyRecord.objects.filter(user_id=user_id)
-        if pregnancy_case.menstruation:
-            qs = qs.filter(check_date__gte=pregnancy_case.menstruation)
-        return qs
+        return pregnancy_case.menstruation or None, None
 
     try:
         idx = [c.pregnancycase_id for c in cases].index(pregnancy_case.pregnancycase_id)
     except ValueError:
-        return PregnancyRecord.objects.filter(user_id=user_id)
+        return None, None
 
     case = cases[idx]
     start_date = case.menstruation
@@ -44,7 +44,16 @@ def records_for_case(pregnancy_case):
         else:
             end_date = None
 
-    qs = PregnancyRecord.objects.filter(user_id=user_id)
+    return start_date, end_date
+
+
+def records_for_case(pregnancy_case):
+    if not pregnancy_case or not pregnancy_case.user_id:
+        return PregnancyRecord.objects.none()
+
+    start_date, end_date = case_date_window(pregnancy_case)
+
+    qs = PregnancyRecord.objects.filter(user_id=pregnancy_case.user_id)
     if start_date:
         qs = qs.filter(check_date__gte=start_date)
     if end_date:

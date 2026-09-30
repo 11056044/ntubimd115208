@@ -166,11 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (monthTodayBtn) {
         monthTodayBtn.addEventListener('click', () => {
-            const today = new Date();
-            const y = today.getFullYear();
-            const m = String(today.getMonth() + 1).padStart(2, '0');
-            const d = String(today.getDate()).padStart(2, '0');
-            window.location.href = buildDateUrl(`${y}-${m}-${d}`);
+            const current = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams();
+            const caseId = current.get('case_id');
+            const babyId = current.get('baby_id');
+            if (caseId) params.set('case_id', caseId);
+            if (babyId) params.set('baby_id', babyId);
+            const qs = params.toString();
+            window.location.href = qs ? `?${qs}` : window.location.pathname;
         });
     }
  

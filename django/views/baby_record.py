@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from views import baby_utils
 from views.upload_utils import InvalidImageError
+from views.supabase_storage import upload_image, delete_image
 
 MONTH_ABBR = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
@@ -210,7 +211,10 @@ def add_baby_record(request):
 
         # ── 照片：所有驗證都通過後才真正落地，避免驗證失敗留下孤兒檔 ──
         try:
-            photo_url = baby_utils.save_uploaded_image(request.FILES.get('photo'))
+            photo_url = upload_image(
+                request.FILES.get('photo'),
+                folder=f'baby_records/{active_baby.pk}',
+            )
         except InvalidImageError as exc:
             return _error(str(exc), record_date_post)
 
@@ -227,6 +231,7 @@ def add_baby_record(request):
             if w  is not None: existing.weight            = w
             if hc is not None: existing.headcircumference = hc
             if cc is not None: existing.chestcircumference = cc
+            old_photo_url = existing.photo if photo_url else None
             if photo_url:
                 existing.photo = photo_url
             old_text = (existing.record or '').strip()
@@ -234,6 +239,7 @@ def add_baby_record(request):
                 existing.record = f'{old_text}\n{record_text}' if old_text else record_text
             existing.update_time = timezone.now()
             existing.save()
+            delete_image(old_photo_url)
             baby_record = existing
             merged = True
         else:
@@ -350,7 +356,10 @@ def edit_baby_record(request, babyrecord_id):
 
         # 照片：驗證全數通過後才存檔，避免驗證失敗留下孤兒檔
         try:
-            photo_url = baby_utils.save_uploaded_image(request.FILES.get('photo'))
+            photo_url = upload_image(
+                request.FILES.get('photo'),
+                folder=f'baby_records/{baby.pk}',
+            )
         except InvalidImageError as exc:
             return _error(str(exc), record_date_edit)
 
@@ -362,11 +371,13 @@ def edit_baby_record(request, babyrecord_id):
         record.chestcircumference = cc
 
         # 只有新上傳照片才覆蓋舊照片
+        old_photo_url = record.photo if photo_url else None
         if photo_url:
             record.photo = photo_url
 
         record.update_time = timezone.now()
         record.save()
+        delete_image(old_photo_url)
 
         # 全量重建里程碑關聯（先刪除再建立）
         BabyStatus.objects.filter(babyrecord=record).delete()
@@ -436,5 +447,7 @@ def delete_baby_record(request, babyrecord_id):
 
     if not _check_baby_permission(user, case, required='caregiver'):
         return redirect('babyinformation')
+    photo_url = record.photo
     record.delete()
+    delete_image(photo_url)
     return redirect(url_with_active_selection(request, reverse('babyinformation')))
