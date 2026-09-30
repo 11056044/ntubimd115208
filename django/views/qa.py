@@ -34,10 +34,10 @@ RATE_LIMIT_SESSION_KEY = "qa_rate_limit_timestamps"
 HISTORY_MESSAGE_LIMIT = 6
 HISTORY_MAX_CHARS = 2000
 
-# DEFAULT_N8N_RAG_WEBHOOK_URL = "http://localhost:5678/webhook/b2489eda-0b01-425d-be17-3c817fb4cdcd"
-DEFAULT_N8N_RAG_WEBHOOK_URL = "https://kathy1023.app.n8n.cloud/webhook/b2489eda-0b01-425d-be17-3c817fb4cdcd"
+# DEFAULT_N8N_RAG_WEBHOOK_URL = "http://localhost:5678/webhook/RAG"
+DEFAULT_N8N_RAG_WEBHOOK_URL = "https://colocolo.app.n8n.cloud/webhook/RAG"
 
-EXPECTED_N8N_RAG_WEBHOOK_PATH = "/webhook/b2489eda-0b01-425d-be17-3c817fb4cdcd"
+EXPECTED_N8N_RAG_WEBHOOK_PATH = "/webhook/RAG"
 
 # 對使用者顯示的通用錯誤訊息（細節只寫 logger，不回傳前端）
 GENERIC_AI_ERROR_MESSAGE = "AI 目前無法回覆，請稍後再試。"

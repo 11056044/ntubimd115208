@@ -46,6 +46,10 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+# 信任反向代理 (Reverse Proxy) 傳遞過來的 Host 與 HTTPS 協定
+# 解決 LINE/Google 登入 Callback URL 變成 172.x.x.x 或 HTTP 的問題
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -165,6 +169,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# 讓 Django 信任反向代理傳遞過來的 Host (解決 callback 變 IP 的問題)
+USE_X_FORWARDED_HOST = True
+
+# 讓 Django 信任反向代理傳遞過來的 HTTPS 協定 (解決 callback 變 http 的問題)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 LANGUAGE_CODE = 'zh-Hant'
 
@@ -175,9 +184,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 
 # 上傳大小上限（整個請求 12MB；單張圖片的 5MB 限制在 views/upload_utils.py）
