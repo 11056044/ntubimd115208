@@ -73,12 +73,29 @@ def _baby_record_scope(current_user, pregnancy_case, active_baby):
     return BabyRecord.objects.filter(baby__pregnancycase__user=current_user)
 
 
-def _calc_stats(current_user, pregnancy_case, active_baby, today,
-                can_view_mom=True, can_view_baby=True):
-    """計算陪伴天數（從懷孕起算）、總照片數量、媽媽紀錄筆數、小孩紀錄筆數 (純真實 ORM 數據)。
+def _parse_time_range(time_range, today):
+    """解析時間範圍，回傳 (start_date, end_date)"""
+    if not time_range or time_range == 'all':
+        return None, None
+    if time_range == '1m':
+        return today - datetime.timedelta(days=30), None
+    if time_range == '3m':
+        return today - datetime.timedelta(days=90), None
+    if time_range == '6m':
+        return today - datetime.timedelta(days=180), None
+    if time_range == '1y':
+        return today - datetime.timedelta(days=365), None
+    if str(time_range).isdigit():
+        y = int(time_range)
+        return datetime.date(y, 1, 1), datetime.date(y, 12, 31)
+    return None, None
 
-    統計口徑已與第一版統一：以 pregnancy_case（及切換器選到的寶寶）為基準，
-    不再用登入者自己的 user 撈全部資料；沒有檢視權限的類別一律計為 0。
+
+def _calc_stats(current_user, pregnancy_case, active_baby, today,
+                can_view_mom=True, can_view_baby=True,
+                start_date=None, end_date=None):
+    """計算陪伴天數（從懷孕起算）、總照片數量、媽媽紀錄筆數、小孩紀錄筆數 (純真實 ORM 數據)。
+    可依據 start_date / end_date 時間區間動態計算對應範圍內的統計數據。
     """
     days_accompanied = 0
     preg_case = pregnancy_case
@@ -89,54 +106,89 @@ def _calc_stats(current_user, pregnancy_case, active_baby, today,
 
     target_uid = _mom_scope_uid(current_user, preg_case)
 
+    # 找出陪伴起算日
+    start_origin = None
     if preg_case:
-        lmp = get_lmp_date(preg_case)
-        if lmp:
-            delta = today - lmp
-            days_accompanied = max(0, delta.days)
-    else:
+        start_origin = get_lmp_date(preg_case)
+    if not start_origin:
         first_preg = (
             PregnancyRecord.objects.filter(user_id=target_uid)
             .order_by('check_date')
             .first()
         )
         if first_preg and first_preg.check_date:
-            days_accompanied = max(0, (today - first_preg.check_date).days)
+            start_origin = first_preg.check_date
         elif active_baby and active_baby.birthdaytime:
-            birth_date = (
+            b_date = (
                 active_baby.birthdaytime.date()
                 if hasattr(active_baby.birthdaytime, 'date')
                 else active_baby.birthdaytime
             )
-            if birth_date:
-                days_accompanied = max(0, (today - birth_date).days + 280)
+            if b_date:
+                start_origin = b_date - datetime.timedelta(days=280)
+
+    if start_origin:
+        eff_start = max(start_origin, start_date) if start_date else start_origin
+        eff_end = min(today, end_date) if end_date else today
+        if eff_start <= eff_end:
+            days_accompanied = max(0, (eff_end - eff_start).days)
+        else:
+            days_accompanied = 0
 
     baby_scope = _baby_record_scope(current_user, preg_case, active_baby)
 
     if can_view_mom:
-        total_ultrasounds = Prenatalrecord.objects.filter(
+        p_qs = Prenatalrecord.objects.filter(
             pregnancyrecord__user_id=target_uid, photo__isnull=False
-        ).exclude(photo='').count()
-        mom_preg_records = PregnancyRecord.objects.filter(user_id=target_uid).count()
-        mom_feelings = Userfeeling.objects.filter(pregnancyrecord__user_id=target_uid).count()
+        ).exclude(photo='')
+        m_rec_qs = PregnancyRecord.objects.filter(user_id=target_uid)
+        m_feel_qs = Userfeeling.objects.filter(pregnancyrecord__user_id=target_uid)
+
+        if start_date:
+            p_qs = p_qs.filter(pregnancyrecord__check_date__gte=start_date)
+            m_rec_qs = m_rec_qs.filter(check_date__gte=start_date)
+            m_feel_qs = m_feel_qs.filter(pregnancyrecord__check_date__gte=start_date)
+        if end_date:
+            p_qs = p_qs.filter(pregnancyrecord__check_date__lte=end_date)
+            m_rec_qs = m_rec_qs.filter(check_date__lte=end_date)
+            m_feel_qs = m_feel_qs.filter(pregnancyrecord__check_date__lte=end_date)
+
+        total_ultrasounds = p_qs.count()
+        mom_preg_records = m_rec_qs.count()
+        mom_feelings = m_feel_qs.count()
         mom_record_count = mom_preg_records + mom_feelings
     else:
         total_ultrasounds = 0
         mom_record_count = 0
 
     if can_view_baby:
-        total_baby_photos = baby_scope.filter(photo__isnull=False).exclude(photo='').count()
-        baby_record_count = baby_scope.count()
+        b_photo_qs = baby_scope.filter(photo__isnull=False).exclude(photo='')
+        b_rec_qs = baby_scope
+
+        if start_date:
+            b_photo_qs = b_photo_qs.filter(date__gte=start_date)
+            b_rec_qs = b_rec_qs.filter(date__gte=start_date)
+        if end_date:
+            b_photo_qs = b_photo_qs.filter(date__lte=end_date)
+            b_rec_qs = b_rec_qs.filter(date__lte=end_date)
+
+        total_baby_photos = b_photo_qs.count()
+        baby_record_count = b_rec_qs.count()
     else:
         total_baby_photos = 0
         baby_record_count = 0
 
     total_photos = total_ultrasounds + total_baby_photos
 
-    # 過去這裡沒有任何使用者條件，顯示的是全站所有人的 AI 問答總數
-    ai_qa_count = QAMessage.objects.filter(
+    ai_qa_qs = QAMessage.objects.filter(
         qa_conversation__user_id=current_user, role__in=['assistant', 'ai']
-    ).count()
+    )
+    if start_date:
+        ai_qa_qs = ai_qa_qs.filter(create_time__date__gte=start_date)
+    if end_date:
+        ai_qa_qs = ai_qa_qs.filter(create_time__date__lte=end_date)
+
+    ai_qa_count = ai_qa_qs.count()
 
     return {
         'days_accompanied': days_accompanied,
@@ -173,11 +225,14 @@ def v3_timeline(request):
     )
     target_uid = _mom_scope_uid(current_user, pregnancy_case)
 
-    stats = _calc_stats(
-        current_user, pregnancy_case, active_baby, today, can_view_mom, can_view_baby
-    )
     filter_type = request.GET.get('filter', 'all')
     time_range = request.GET.get('time_range', 'all')
+    start_date, end_date = _parse_time_range(time_range, today)
+
+    stats = _calc_stats(
+        current_user, pregnancy_case, active_baby, today, can_view_mom, can_view_baby,
+        start_date=start_date, end_date=end_date
+    )
 
     events = []
 
@@ -313,26 +368,20 @@ def v3_timeline(request):
         events = [e for e in events if e['type'] == filter_type]
 
     # 時間範圍篩選 (time_range)
-    if time_range and time_range != 'all':
-        if time_range == '1m':
-            cutoff = today - datetime.timedelta(days=30)
-            events = [e for e in events if e['date'] >= cutoff]
-        elif time_range == '3m':
-            cutoff = today - datetime.timedelta(days=90)
-            events = [e for e in events if e['date'] >= cutoff]
-        elif time_range == '6m':
-            cutoff = today - datetime.timedelta(days=180)
-            events = [e for e in events if e['date'] >= cutoff]
-        elif time_range == '1y':
-            cutoff = today - datetime.timedelta(days=365)
-            events = [e for e in events if e['date'] >= cutoff]
-        elif time_range.isdigit():
-            target_year = int(time_range)
-            events = [e for e in events if e['date'].year == target_year]
+    if start_date:
+        events = [e for e in events if e['date'] >= start_date]
+    if end_date:
+        events = [e for e in events if e['date'] <= end_date]
 
-    # 5. 身體狀況分布統計 (百分比)
+    # 5. 身體狀況分布統計 (百分比，同樣受時間區間篩選)
+    phys_qs = Userphysicalcondition.objects.filter(pregnancyrecord__user_id=target_uid)
+    if start_date:
+        phys_qs = phys_qs.filter(pregnancyrecord__check_date__gte=start_date)
+    if end_date:
+        phys_qs = phys_qs.filter(pregnancyrecord__check_date__lte=end_date)
+
     user_physicals = (
-        Userphysicalcondition.objects.filter(pregnancyrecord__user_id=target_uid)
+        phys_qs
         .values('physicalcondition__physicalcondition_name')
         .annotate(cnt=Count('userphysicalcondition_id'))
         .order_by('-cnt')
@@ -379,12 +428,18 @@ def v3_timeline(request):
         physical_stats = []
         total_physical_count = 0
 
-    # 6. 超音波相片資料 (供影片播放器 Template 使用)
+    # 6. 超音波相片資料 (供影片播放器 Template 使用，同樣受時間區間篩選)
     ultrasound_photos = []
+    photo_qs = Prenatalrecord.objects.filter(
+        pregnancyrecord__user_id=target_uid, photo__isnull=False
+    ).exclude(photo='')
+    if start_date:
+        photo_qs = photo_qs.filter(pregnancyrecord__check_date__gte=start_date)
+    if end_date:
+        photo_qs = photo_qs.filter(pregnancyrecord__check_date__lte=end_date)
+
     prenatals_with_photo = (
-        Prenatalrecord.objects.filter(
-            pregnancyrecord__user_id=target_uid, photo__isnull=False
-        ).exclude(photo='').select_related('pregnancyrecord')
+        photo_qs.select_related('pregnancyrecord')
         if can_view_mom
         else Prenatalrecord.objects.none()
     )
